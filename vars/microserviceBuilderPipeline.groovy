@@ -71,10 +71,11 @@ def call(body) {
   def manifestFolder = config.manifestFolder ?: ((System.getenv("MANIFEST_FOLDER") ?: "").trim() ?: 'manifests')
   def libertyLicenseJarBaseUrl = (System.getenv("LIBERTY_LICENSE_JAR_BASE_URL") ?: "").trim()
   def libertyLicenseJarName = config.libertyLicenseJarName ?: (System.getenv("LIBERTY_LICENSE_JAR_NAME") ?: "").trim()
+  def alwaysPullImage = (config.alwaysPullImage ?: System.getenv("ALWAYS_PULL_IMAGE")).toBoolean()
 
   print "microserviceBuilderPipeline: registry=${registry} registrySecret=${registrySecret} build=${build} \
   deploy=${deploy} deployBranch=${deployBranch} test=${test} debug=${debug} namespace=${namespace} \
-  chartFolder=${chartFolder} manifestFolder=${manifestFolder}"
+  chartFolder=${chartFolder} manifestFolder=${manifestFolder} alwaysPullImage=${alwaysPullImage}"
 
   // We won't be able to get hold of registrySecret if Jenkins is running in a non-default namespace that is not the deployment namespace.
   // In that case we'll need the registrySecret to have been ported over, perhaps during pipeline install.
@@ -128,7 +129,12 @@ def call(body) {
           stage ('Docker Build') {
             container ('docker') {
               imageTag = gitCommit
-              def buildCommand = "docker build --pull=true -t ${image}:${imageTag}"
+              def buildCommand = "docker build"
+              if (alwaysPullImage) {
+                buildCommand += " --pull=true -t ${image}:${imageTag}"
+              } else {
+                buildCommand += " -t ${image}:${imageTag}"
+              }
               if (libertyLicenseJarBaseUrl) {
                 if (readFile('Dockerfile').contains('LICENSE_JAR_URL')) {
                   buildCommand += " --build-arg LICENSE_JAR_URL=" + libertyLicenseJarBaseUrl
