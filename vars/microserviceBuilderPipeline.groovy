@@ -71,7 +71,7 @@ def call(body) {
   def manifestFolder = config.manifestFolder ?: ((System.getenv("MANIFEST_FOLDER") ?: "").trim() ?: 'manifests')
   def libertyLicenseJarBaseUrl = (System.getenv("LIBERTY_LICENSE_JAR_BASE_URL") ?: "").trim()
   def libertyLicenseJarName = config.libertyLicenseJarName ?: (System.getenv("LIBERTY_LICENSE_JAR_NAME") ?: "").trim()
-  def alwaysPullImage = (config.alwaysPullImage ?: System.getenv("ALWAYS_PULL_IMAGE")).toBoolean()
+  def alwaysPullImage = (System.getenv("ALWAYS_PULL_IMAGE") == null) ? true : System.getenv("ALWAYS_PULL_IMAGE").toBoolean()
 
   print "microserviceBuilderPipeline: registry=${registry} registrySecret=${registrySecret} build=${build} \
   deploy=${deploy} deployBranch=${deployBranch} test=${test} debug=${debug} namespace=${namespace} \
@@ -129,11 +129,9 @@ def call(body) {
           stage ('Docker Build') {
             container ('docker') {
               imageTag = gitCommit
-              def buildCommand = "docker build"
+              def buildCommand = "docker build -t ${image}:${imageTag} "
               if (alwaysPullImage) {
-                buildCommand += " --pull=true -t ${image}:${imageTag}"
-              } else {
-                buildCommand += " -t ${image}:${imageTag}"
+                buildCommand += " --pull=true "
               }
               if (libertyLicenseJarBaseUrl) {
                 if (readFile('Dockerfile').contains('LICENSE_JAR_URL')) {
