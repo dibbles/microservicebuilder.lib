@@ -63,7 +63,10 @@ def call(body) {
   def build = (config.build ?: env.BUILD ?: "true").toBoolean()
   def deploy = (config.deploy ?: env.DEPLOY ?: "true").toBoolean()
   def namespace = (config.namespace ?: env.NAMESPACE ?: "").trim()
-
+  
+  def to-checkout = (config.tocheckout ?: env.TO-CHECKOUT ?: "").trim()
+  echo "to-checkout is: $to-checkout"
+  
   // these options were all added later. Helm chart may not have the associated properties set.
   def test = (config.test ?: (env.TEST ?: "false").trim()).toLowerCase() == 'true'
   def debug = (config.debug ?: (env.DEBUG ?: "false").trim()).toLowerCase() == 'true'
@@ -113,7 +116,14 @@ def call(body) {
 
       stage ('Extract') {
         checkout scm
+        
+        echo "to-checkout is $to-checkout"
+        echo "scm.GIT_COMMIT is $scm.GIT_COMMIT"        
+        
+        # Todo if they specify a certain Git commit, don't do this
+          
         gitCommit = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+        
         echo "checked out git commit ${gitCommit}"
       }
 
