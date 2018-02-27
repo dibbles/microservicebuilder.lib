@@ -62,10 +62,8 @@ def call(body) {
   def registrySecret = (env.REGISTRY_SECRET ?: "").trim()
   def build = (config.build ?: env.BUILD ?: "true").toBoolean()
   def deploy = (config.deploy ?: env.DEPLOY ?: "true").toBoolean()
-  def namespace = (config.namespace ?: env.NAMESPACE ?: "").trim()
-  
-  def tocheckout = (config.tocheckout ?: env.tocheckout ?: "").trim()
-  echo "tocheckout is: $tocheckout"
+  def namespace = (config.namespace ?: env.NAMESPACE ?: "").trim()  
+  def tocheckout = (config.tocheckout ?: env.TOCHECKOUT ?: "").trim()  
   
   // these options were all added later. Helm chart may not have the associated properties set.
   def test = (config.test ?: (env.TEST ?: "false").trim()).toLowerCase() == 'true'
@@ -120,8 +118,13 @@ def call(body) {
         echo "tocheckout is ${tocheckout}"
         
         // Todo if they specify a certain Git commit, don't do this
-          
-        gitCommit = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+        if ${tocheckout != ""} {
+          echo "Checking out the last commit..."
+          gitCommit = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+        else
+          echo "Checking out a specific commit..."
+          gitCommit = sh(script: 'git checkout ${tocheckout}')  
+        }
         
         echo "checked out git commit ${gitCommit}"
       }
