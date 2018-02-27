@@ -11,11 +11,10 @@
   The following parameters may also be specified. Their defaults are shown below.
   These are the names of images to be downloaded from https://hub.docker.com/.
 
-    mavenImage = 'maven:3.5.0-jdk-8'
+    mavenImage = 'maven:3.5.2-jdk-8'
     dockerImage = 'docker'
-    kubectlImage = 'lachlanevenson/k8s-kubectl:v1.6.0'
-    helmImage = 'lachlanevenson/k8s-helm:v2.4.1'
-    istioctlImage = 'ibmcom/istioctl:1.6.0'
+    kubectlImage = 'ibmcom/k8s-kubectl:v1.8.3'
+    helmImage = 'ibmcom/k8s-helm:v2.6.0'
 
   You can also specify:
 
@@ -50,33 +49,34 @@ def call(body) {
   print "microserviceBuilderPipeline : config = ${config}"
 
   def image = config.image
-  def maven = (config.mavenImage == null) ? 'maven:3.5.0-jdk-8' : config.mavenImage
-  def docker = (config.dockerImage == null) ? 'docker' : config.dockerImage
-  def kubectl = (config.kubectlImage == null) ? 'lachlanevenson/k8s-kubectl:v1.6.0' : config.kubectlImage
-  def helm = (config.helmImage == null) ? 'lachlanevenson/k8s-helm:v2.4.1' : config.helmImage
-  def istioctl = (config.istioctlImage == null) ? 'ibmcom/istioctl:1.6.0' : config.istioctlImage
+  def maven = (config.mavenImage == null) ? 'maven:3.5.2-jdk-8' : config.mavenImage
+  def docker = (config.dockerImage == null) ? 'ibmcom/docker:17.10' : config.dockerImage
+  def kubectl = (config.kubectlImage == null) ? 'ibmcom/k8s-kubectl:v1.8.3' : config.kubectlImage
+  def helm = (config.helmImage == null) ? 'ibmcom/k8s-helm:v2.6.0' : config.helmImage
   def mvnCommands = (config.mvnCommands == null) ? 'clean package' : config.mvnCommands
-  def registry = System.getenv("REGISTRY").trim()
+  def registry = (env.REGISTRY ?: "").trim()
   if (registry && !registry.endsWith('/')) registry = "${registry}/"
-  def registrySecret = System.getenv("REGISTRY_SECRET").trim()
-  def build = (config.build ?: System.getenv ("BUILD")).trim().toLowerCase() == 'true'
-  def deploy = (config.deploy ?: System.getenv ("DEPLOY")).trim().toLowerCase() == 'true'
-  def namespace = config.namespace ?: (System.getenv("NAMESPACE") ?: "").trim()
+  def registrySecret = (env.REGISTRY_SECRET ?: "").trim()
+  def build = (config.build ?: env.BUILD ?: "true").toBoolean()
+  def deploy = (config.deploy ?: env.DEPLOY ?: "true").toBoolean()
+  def namespace = (config.namespace ?: env.NAMESPACE ?: "").trim()
 
   // these options were all added later. Helm chart may not have the associated properties set.
-  def test = (config.test ?: (System.getenv ("TEST") ?: "false").trim()).toLowerCase() == 'true'
-  def debug = (config.debug ?: (System.getenv ("DEBUG") ?: "false").trim()).toLowerCase() == 'true'
-  def deployBranch = config.deployBranch ?: ((System.getenv("DEFAULT_DEPLOY_BRANCH") ?: "").trim() ?: 'master')
+  def test = (config.test ?: (env.TEST ?: "false").trim()).toLowerCase() == 'true'
+  def debug = (config.debug ?: (env.DEBUG ?: "false").trim()).toLowerCase() == 'true'
+  def deployBranch = config.deployBranch ?: ((env.DEFAULT_DEPLOY_BRANCH ?: "").trim() ?: 'master')
   // will need to check later if user provided chartFolder location
   def userSpecifiedChartFolder = config.chartFolder
   def chartFolder = userSpecifiedChartFolder ?: ((System.getenv("CHART_FOLDER") ?: "").trim() ?: 'chart')
   def manifestFolder = config.manifestFolder ?: ((System.getenv("MANIFEST_FOLDER") ?: "").trim() ?: 'manifests')
   def libertyLicenseJarBaseUrl = (System.getenv("LIBERTY_LICENSE_JAR_BASE_URL") ?: "").trim()
   def libertyLicenseJarName = config.libertyLicenseJarName ?: (System.getenv("LIBERTY_LICENSE_JAR_NAME") ?: "").trim()
+  def alwaysPullImage = (System.getenv("ALWAYS_PULL_IMAGE") == null) ? true : System.getenv("ALWAYS_PULL_IMAGE").toBoolean()
+  def mavenSettingsConfigMap = System.getenv("MAVEN_SETTINGS_CONFIG_MAP")?.trim() 
 
   print "microserviceBuilderPipeline: registry=${registry} registrySecret=${registrySecret} build=${build} \
   deploy=${deploy} deployBranch=${deployBranch} test=${test} debug=${debug} namespace=${namespace} \
-  chartFolder=${chartFolder} manifestFolder=${manifestFolder}"
+  chartFolder=${chartFolder} manifestFolder=${manifestFolder} alwaysPullImage=${alwaysPullImage}"
 
   // We won't be able to get hold of registrySecret if Jenkins is running in a non-default namespace that is not the deployment namespace.
   // In that case we'll need the registrySecret to have been ported over, perhaps during pipeline install.
@@ -86,26 +86,22 @@ def call(body) {
   if (registrySecret) {
     volumes += secretVolume(secretName: registrySecret, mountPath: '/msb_reg_sec')
   }
+  if (mavenSettingsConfigMap) {
+    volumes += configMapVolume(configMapName: mavenSettingsConfigMap, mountPath: '/msb_mvn_cfg')
+  }
   print "microserviceBuilderPipeline: volumes = ${volumes}"
 
-  testNamespace = "testns-${env.BUILD_ID}-" + UUID.randomUUID()
-  print "testing against namespace " + testNamespace
-
-    podTemplate(
+  podTemplate(
     label: 'msbPod',
+    inheritFrom: 'default',
     containers: [
-      containerTemplate(name: 'maven', image: maven, ttyEnabled: true, command: 'cat',
-        envVars: [
-          containerEnvVar(key: 'ENV_INIT_ENABLED', value: 'false'),
-          containerEnvVar(key: 'NAMESPACE_USE_EXISTING', value: testNamespace)
-        ]),
+      containerTemplate(name: 'maven', image: maven, ttyEnabled: true, command: 'cat'),
       containerTemplate(name: 'docker', image: docker, command: 'cat', ttyEnabled: true,
         envVars: [
           containerEnvVar(key: 'DOCKER_API_VERSION', value: '1.23.0')
         ]),
       containerTemplate(name: 'kubectl', image: kubectl, ttyEnabled: true, command: 'cat'),
       containerTemplate(name: 'helm', image: helm, ttyEnabled: true, command: 'cat'),
-      containerTemplate(name: 'istioctl', image: istioctl, ttyEnabled: true, command: 'cat')
     ],
     volumes: volumes
   ) {
@@ -123,7 +119,12 @@ def call(body) {
         if (fileExists('pom.xml')) {
           stage ('Maven Build') {
             container ('maven') {
-              sh "mvn -B ${mvnCommands}"
+              def mvnCommand = "mvn -B"
+              if (mavenSettingsConfigMap) {
+                mvnCommand += " --settings /msb_mvn_cfg/settings.xml"
+              }
+              mvnCommand += " ${mvnCommands}"
+              sh mvnCommand
             }
           }
         }
@@ -131,7 +132,17 @@ def call(body) {
           stage ('Docker Build') {
             container ('docker') {
               imageTag = gitCommit
-              def buildCommand = "docker build --pull=true -t ${image}:${imageTag}"
+              def buildCommand = "docker build -t ${image}:${imageTag} "
+              buildCommand += "--label org.label-schema.schema-version=\"1.0\" "
+              def scmUrl = scm.getUserRemoteConfigs()[0].getUrl()
+              buildCommand += "--label org.label-schema.vcs-url=\"${scmUrl}\" "
+              buildCommand += "--label org.label-schema.vcs-ref=\"${gitCommit}\" "  
+              buildCommand += "--label org.label-schema.name=\"${image}\" "
+              def buildDate = sh(returnStdout: true, script: "date -Iseconds").trim()
+              buildCommand += "--label org.label-schema.build-date=\"${buildDate}\" "
+              if (alwaysPullImage) {
+                buildCommand += " --pull=true "
+              }
               if (libertyLicenseJarBaseUrl) {
                 if (readFile('Dockerfile').contains('LICENSE_JAR_URL')) {
                   buildCommand += " --build-arg LICENSE_JAR_URL=" + libertyLicenseJarBaseUrl
@@ -142,11 +153,11 @@ def call(body) {
                 }
               }
               buildCommand += " ."
+              if (registrySecret) {
+                sh "ln -s /msb_reg_sec/.dockercfg /home/jenkins/.dockercfg"
+              }
               sh buildCommand
               if (registry) {
-                if (registrySecret) {
-                  sh "ln -s /msb_reg_sec/.dockercfg /home/jenkins/.dockercfg"
-                }
                 sh "docker tag ${image}:${imageTag} ${registry}${image}:${imageTag}"
                 sh "docker push ${registry}${image}:${imageTag}"
               }
@@ -159,13 +170,22 @@ def call(body) {
       if (fileExists(chartFolder)) {
         // find the likely chartFolder location
         realChartFolder = getChartFolder(userSpecifiedChartFolder, chartFolder)
-      } else {
-        sh "find ${manifestFolder} -type f | xargs sed -i \'s|\\(image:\\s*\\)\\(.*\\):latest|\\1${registry}\\2:${gitCommit}|g\'"
+        def yamlContent = "image:"
+        yamlContent += "\n  repository: ${registry}${image}"
+        if (imageTag) yamlContent += "\n  tag: \\\"${imageTag}\\\""
+        sh "echo \"${yamlContent}\" > pipeline.yaml"
+      } else if (fileExists(manifestFolder)){
+        sh "find ${manifestFolder} -type f | xargs sed -i 's|\\(image:\\s*\\)${image}:latest|\\1${registry}${image}:latest|g'"
+        sh "find ${manifestFolder} -type f | xargs sed -i 's|\\(image:\\s*\\)${registry}${image}:latest|\\1${registry}${image}:${gitCommit}|g'"
       }
 
       if (test && fileExists('pom.xml') && realChartFolder != null && fileExists(realChartFolder)) {
         stage ('Verify') {
-          String tempHelmRelease = (image + "-" + testNamespace).substring(0,52) // 53 is max length in Helm
+          testNamespace = "testns-${env.BUILD_ID}-" + UUID.randomUUID()
+          print "testing against namespace " + testNamespace
+          String tempHelmRelease = (image + "-" + testNamespace)
+          // Name cannot end in '-' or be longer than 53 chars
+          while (tempHelmRelease.endsWith('-') || tempHelmRelease.length() > 53) tempHelmRelease = tempHelmRelease.substring(0,tempHelmRelease.length()-1)
           container ('kubectl') {
             sh "kubectl create namespace ${testNamespace}"
             sh "kubectl label namespace ${testNamespace} test=true"
@@ -173,10 +193,10 @@ def call(body) {
               giveRegistryAccessToNamespace (testNamespace, registrySecret)
             }
           }
-          // We're moving to Helm-only deployments. Use Helm to install a deployment to test against.
+          
           container ('helm') {
-            sh "helm init --client-only"
-            def deployCommand = "helm install ${realChartFolder} --wait --set test=true,image.repository=${registry}${image},image.tag=${imageTag} --namespace ${testNamespace} --name ${tempHelmRelease}"
+            sh "/helm init --client-only --skip-refresh"
+            def deployCommand = "/helm install ${realChartFolder} --wait --set test=true --values pipeline.yaml --namespace ${testNamespace} --name ${tempHelmRelease}"
             if (fileExists("chart/overrides.yaml")) {
               deployCommand += " --values chart/overrides.yaml"
             }
@@ -185,7 +205,12 @@ def call(body) {
 
           container ('maven') {
             try {
-              sh "mvn -B verify"
+              def mvnCommand = "mvn -B -Dnamespace.use.existing=${testNamespace} -Denv.init.enabled=false"
+              if (mavenSettingsConfigMap) {
+                mvnCommand += " --settings /msb_mvn_cfg/settings.xml"
+              }
+              mvnCommand += " verify"
+              sh mvnCommand
             } finally {
               step([$class: 'JUnitResultArchiver', allowEmptyResults: true, testResults: '**/target/failsafe-reports/*.xml'])
               step([$class: 'ArtifactArchiver', artifacts: '**/target/failsafe-reports/*.txt', allowEmptyArchive: true])
@@ -194,7 +219,7 @@ def call(body) {
                   sh "kubectl delete namespace ${testNamespace}"
                   if (fileExists(realChartFolder)) {
                     container ('helm') {
-                      sh "helm delete ${tempHelmRelease} --purge"
+                      sh "/helm delete ${tempHelmRelease} --purge"
                     }
                   }
                 }
@@ -209,16 +234,6 @@ def call(body) {
           deployProject (realChartFolder, registry, image, imageTag, namespace, manifestFolder)
         }
       }
-
-      if (fileExists('istio.yaml')) {
-        container ('istioctl') {
-          try {
-            sh (script: "istioctl replace -f istio.yaml", returnStdout: true).trim()
-          } catch (Exception x) {
-            sh "istioctl create -f istio.yaml"
-          }
-        }
-      }
     }
   }
 }
@@ -226,9 +241,8 @@ def call(body) {
 def deployProject (String chartFolder, String registry, String image, String imageTag, String namespace, String manifestFolder) {
   if (chartFolder != null && fileExists(chartFolder)) {
     container ('helm') {
-      sh "helm init --client-only"
-      def deployCommand = "helm upgrade --install --set image.repository=${registry}${image}"
-      if (imageTag) deployCommand += ",image.tag=${imageTag}"
+      sh "/helm init --client-only --skip-refresh"
+      def deployCommand = "/helm upgrade --install --wait --values pipeline.yaml"
       if (fileExists("chart/overrides.yaml")) {
         deployCommand += " --values chart/overrides.yaml"
       }
@@ -247,39 +261,16 @@ def deployProject (String chartFolder, String registry, String image, String ima
 }
 
 /*
-  We have a (temporary) namespace that we want to grant CfC registry access to.
+  We have a (temporary) namespace that we want to grant ICP registry access to.
   String namespace: target namespace
-  String registrySecret: secret in Jenkins' namespace to use
 
-  1. Port registrySecret into namespace
+  1. Port registrySecret into a temporary namespace
   2. Modify 'default' serviceaccount to use ported registrySecret.
 */
 
 def giveRegistryAccessToNamespace (String namespace, String registrySecret) {
-  String secretScript = "kubectl get secret/${registrySecret} -o jsonpath=\"{.data.\\.dockercfg}\""
-  String secret = sh (script: secretScript, returnStdout: true).trim()
-  String yaml = """
-  apiVersion: v1
-  data:
-    .dockercfg: ${secret}
-  kind: Secret
-  metadata:
-    name: ${registrySecret}
-  type: kubernetes.io/dockercfg
-  """
-  sh "printf -- \"${yaml}\" | kubectl apply --namespace ${namespace} -f -"
-
-  String sa = sh (script: "kubectl get sa default -o json --namespace ${namespace}", returnStdout: true).trim()
-  /*
-      Use JsonSlurperClassic because JsonSlurper is not thread safe, not serializable, and not good to use in Jenkins jobs.
-      See https://stackoverflow.com/questions/37864542/jenkins-pipeline-notserializableexception-groovy-json-internal-lazymap
-  */
-  def map = new JsonSlurperClassic().parseText (sa)
-  map.metadata.remove ('resourceVersion')
-  map.put ('imagePullSecrets', [['name': registrySecret]])
-  def json = JsonOutput.prettyPrint(JsonOutput.toJson(map))
-  writeFile file: 'temp.json', text: json
-  sh "kubectl replace sa default --namespace ${namespace} -f temp.json"
+  sh "kubectl get secret ${registrySecret} -o json | sed 's/\"namespace\":.*\$/\"namespace\": \"${namespace}\",/g' | kubectl create -f -"
+  sh "kubectl patch serviceaccount default -p '{\"imagePullSecrets\": [{\"name\": \"${registrySecret}\"}]}' --namespace ${namespace}"
 }
 
 def getChartFolder(String userSpecified, String currentChartFolder) {
