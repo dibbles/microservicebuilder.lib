@@ -47,6 +47,9 @@ def call(body) {
   body()
 
   print "microserviceBuilderPipeline : config = ${config}"
+  
+  print "In the custom version by Adam"
+  print "scm is ${scm}"
 
   def image = config.image
   def maven = (config.mavenImage == null) ? 'maven:3.5.2-jdk-8' : config.mavenImage
