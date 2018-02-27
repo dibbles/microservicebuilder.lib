@@ -64,7 +64,7 @@ def call(body) {
   def deploy = (config.deploy ?: env.DEPLOY ?: "true").toBoolean()
   def namespace = (config.namespace ?: env.NAMESPACE ?: "").trim()
   
-  def tocheckout = (config.tocheckout ?: env.TOCHECKOUT ?: "").trim()
+  def tocheckout = (config.tocheckout ?: env.tocheckout ?: "").trim()
   echo "tocheckout is: $tocheckout"
   
   // these options were all added later. Helm chart may not have the associated properties set.
