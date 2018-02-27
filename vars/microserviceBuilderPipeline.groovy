@@ -120,7 +120,7 @@ def call(body) {
         echo "tocheckout is $tocheckout"
         echo "scm.GIT_COMMIT is $scm.GIT_COMMIT"        
         
-        # Todo if they specify a certain Git commit, don't do this
+        // Todo if they specify a certain Git commit, don't do this
           
         gitCommit = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
         
