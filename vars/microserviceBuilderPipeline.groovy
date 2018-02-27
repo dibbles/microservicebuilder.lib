@@ -117,8 +117,7 @@ def call(body) {
       stage ('Extract') {
         checkout scm
         
-        echo "tocheckout is $tocheckout"
-        echo "scm.GIT_COMMIT is $scm.GIT_COMMIT"        
+        echo "tocheckout is $tocheckout"   
         
         // Todo if they specify a certain Git commit, don't do this
           
