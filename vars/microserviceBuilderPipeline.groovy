@@ -317,7 +317,7 @@ def deployProject (String chartFolder, String registry, String image, String ima
       deployCommand += " ${releaseName} ${chartFolder}"
       
       if (debug) {
-        container ('kubectl') {
+        container ('docker') {
           echo "Printing all found docker images before deploying..."
           sh "docker images"
           echo ""
