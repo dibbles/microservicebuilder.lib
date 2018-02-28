@@ -277,16 +277,31 @@ def call(body) {
         }
       }
 
-      if (deploy && env.BRANCH_NAME == deployBranch) {
+      if (deploy) {
         stage ('Deploy') {
           deployProject (realChartFolder, registry, image, imageTag, namespace, manifestFolder)
         }
       }
+      
+      
     }
   }
 }
 
 def deployProject (String chartFolder, String registry, String image, String imageTag, String namespace, String manifestFolder) {
+
+  found_namespace_rc = sh "kubectl get namespace ${namespace}"
+  if (found_namespace_rc != 0) {
+   // blow up with an error 1
+    return 1
+  }
+
+  found_image_rc = sh "docker image ls $image:$imageTag | grep \"^$image \""
+  if (found_image_rc != 0) {
+    // blow up with an error 2
+    return 2
+  }
+  
   if (chartFolder != null && fileExists(chartFolder)) {
     container ('helm') {
       sh "/helm init --client-only --skip-refresh"
@@ -295,7 +310,7 @@ def deployProject (String chartFolder, String registry, String image, String ima
         deployCommand += " --values chart/overrides.yaml"
       }
       if (namespace) deployCommand += " --namespace ${namespace}"
-      def releaseName = (env.BRANCH_NAME == "master") ? "${image}" : "${image}-${env.BRANCH_NAME}"
+      def releaseName = (env.BRANCH_NAME == "master") ? "${image}" : "${image}-${branch}-${commit}"
       deployCommand += " ${releaseName} ${chartFolder}"
       sh deployCommand
     }
