@@ -43,7 +43,7 @@ def call(body) {
       parameters([
           string(name: 'commit', defaultValue: '', description: 'The commit to checkout'),
           string(name: 'branch', defaultValue: 'master', description: 'The branch to checkout'),
-          string(name: 'namespace', defaultValue: '', description: 'The target namespace')        
+          string(name: 'namespace', defaultValue: '', description: 'The target namespace'),
           boolean(name: 'build', defaultValue: true, description: 'Build your project?'),
           boolean(name: 'deploy', defaultValue: false, description: 'Deploy your project?')        
       ])
