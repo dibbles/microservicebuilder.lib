@@ -294,6 +294,10 @@ def call(body) {
 }
 
 def deployProject (String chartFolder, String registry, String image, String imageTag, String namespace, String manifestFolder) {
+  // todo check if namespace exists with kubectl
+  
+  // todo check their image exists with docker images
+  
   if (chartFolder != null && fileExists(chartFolder)) {
     container ('helm') {
       sh "/helm init --client-only --skip-refresh"
