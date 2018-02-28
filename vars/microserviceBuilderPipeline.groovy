@@ -23,7 +23,6 @@
     deploy = 'true' - any value other than 'true' == false
     test = 'true' - `mvn verify` is run if this value is `true` and a pom.xml exists
     debug = 'false' - namespaces created during tests are deleted unless this value is set to 'true'
-    deployBranch = 'master' - only builds from this branch are deployed
     chartFolder = 'chart' - folder containing helm deployment chart
     manifestFolder = 'manifests' - folder containing kubectl deployment manifests
     namespace = 'targetNamespace' - deploys into Kubernetes targetNamespace.
@@ -105,7 +104,6 @@ def call(body) {
   // and automatically if they have a hook set up.
   // something like this eventually where we have auto deploy branches in the Project CRD
   // def autoDeployBranches = config.autoDeployBranches ?: ((env.AUTO_DEPLOY_BRANCHES ?: "").trim() ?: ['master', 'deploy'])  
-  def deployBranch = config.deployBranch ?: ((env.DEFAULT_DEPLOY_BRANCH ?: "").trim() ?: 'master')  
   
   // will need to check later if user provided chartFolder location
   def userSpecifiedChartFolder = config.chartFolder
@@ -117,7 +115,7 @@ def call(body) {
   def mavenSettingsConfigMap = System.getenv("MAVEN_SETTINGS_CONFIG_MAP")?.trim() 
 
   print "microserviceBuilderPipeline: registry=${registry} registrySecret=${registrySecret} build=${build} \
-  deploy=${deploy} deployBranch=${deployBranch} test=${test} debug=${debug} namespace=${namespace} \
+  deploy=${deploy} test=${test} debug=${debug} namespace=${namespace} \
   chartFolder=${chartFolder} manifestFolder=${manifestFolder} alwaysPullImage=${alwaysPullImage}"
 
   // We won't be able to get hold of registrySecret if Jenkins is running in a non-default namespace that is not the deployment namespace.
