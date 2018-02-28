@@ -7,28 +7,24 @@
   microserviceBuilderPipeline {
     image = 'microservice-test'
   }
-
   The following parameters may also be specified. Their defaults are shown below.
   These are the names of images to be downloaded from https://hub.docker.com/.
-
     mavenImage = 'maven:3.5.2-jdk-8'
     dockerImage = 'docker'
     kubectlImage = 'ibmcom/k8s-kubectl:v1.8.3'
     helmImage = 'ibmcom/k8s-helm:v2.6.0'
-
   You can also specify:
-
     mvnCommands = 'clean package'
     build = 'true' - any value other than 'true' == false
     deploy = 'true' - any value other than 'true' == false
     test = 'true' - `mvn verify` is run if this value is `true` and a pom.xml exists
     debug = 'false' - namespaces created during tests are deleted unless this value is set to 'true'
+    deployBranch = 'master' - only builds from this branch are deployed
     chartFolder = 'chart' - folder containing helm deployment chart
     manifestFolder = 'manifests' - folder containing kubectl deployment manifests
     namespace = 'targetNamespace' - deploys into Kubernetes targetNamespace.
       Default is to deploy into Jenkins' namespace.
     libertyLicenseJarName - override for Pipeline.LibertyLicenseJar.Name
-
 -------------------------*/
 
 import com.cloudbees.groovy.cps.NonCPS
@@ -38,17 +34,6 @@ import groovy.json.JsonOutput;
 import groovy.json.JsonSlurperClassic;
 
 def call(body) {
-
-  properties([
-      parameters([
-          string(name: 'commit', defaultValue: '', description: 'The commit to checkout'),
-          string(name: 'branch', defaultValue: 'master', description: 'The branch to checkout'),
-          string(name: 'namespace', defaultValue: '', description: 'The target namespace'),
-          booleanParam(name: 'build', defaultValue: true, description: 'Build your project?'),
-          booleanParam(name: 'deploy', defaultValue: false, description: 'Deploy your project?')
-      ])
-  ])
-
   def config = [:]
   // Parameter expansion works after the call to body() below.
   // See https://jenkins.io/doc/book/pipeline/shared-libraries/ 'Defining a more structured DSL'
@@ -58,34 +43,6 @@ def call(body) {
 
   print "microserviceBuilderPipeline : config = ${config}"
 
-  print "In the custom version by Adam"
-
-  // From Jenkins, these will be available as parameters.
-  // Users can override it in their Jenkinsfile.
-  // TODO check precedence! Which gets used if in both Jenkins job AND their Jenkinsfile?
-
-  // Example usage
-  // project-namespace here is the Jenkins folder name
-
-  // POST http://jenkins.192.168.42.21.nip.io/job/(project-namespace)/job/(project-name)/job/(any branch that exists)/buildWithParameters?branch=(branch-to-build-and-or-deploy)&commit=bigmac&build=true&deploy=false&namespace=(the target namespace)
-
-  def commit = (config.commit ?: env.COMMIT ?: "").trim()
-  echo "Input, commit to checkout is ${commit}"
-
-  def branch = (config.branch ?: env.BRANCH ?: "").trim()
-  echo "Input, branch to checkout is ${branch}"
-
-  def namespace = (config.commit ?: env.NAMESPACE ?: "").trim()
-  echo "Input, namespace to deploy into is ${namespace}"
-
-  // Important to note this defaults to false!
-  def deploy = (config.deploy ?: env.DEPLOY ?: "false").toBoolean()
-  echo "Input, deploy is ${deploy}"
-
-  def build = (config.build ?: env.BUILD ?: "true").toBoolean()
-  echo "Input, build is ${build}"
-
-  // Not necessarily exposed via Jenkins
   def image = config.image
   def maven = (config.mavenImage == null) ? 'maven:3.5.2-jdk-8' : config.mavenImage
   def docker = (config.dockerImage == null) ? 'ibmcom/docker:17.10' : config.dockerImage
@@ -95,16 +52,14 @@ def call(body) {
   def registry = (env.REGISTRY ?: "").trim()
   if (registry && !registry.endsWith('/')) registry = "${registry}/"
   def registrySecret = (env.REGISTRY_SECRET ?: "").trim()
+  def build = (config.build ?: env.BUILD ?: "true").toBoolean()
+  def deploy = (config.deploy ?: env.DEPLOY ?: "true").toBoolean()
+  def namespace = (config.namespace ?: env.NAMESPACE ?: "").trim()
 
   // these options were all added later. Helm chart may not have the associated properties set.
   def test = (config.test ?: (env.TEST ?: "false").trim()).toLowerCase() == 'true'
   def debug = (config.debug ?: (env.DEBUG ?: "false").trim()).toLowerCase() == 'true'
-
-  // Allows users to specify a named deployment branch; code that goes here will be deployed
-  // and automatically if they have a hook set up.
-  // something like this eventually where we have auto deploy branches in the Project CRD
-  // def autoDeployBranches = config.autoDeployBranches ?: ((env.AUTO_DEPLOY_BRANCHES ?: "").trim() ?: ['master', 'deploy'])
-
+  def deployBranch = config.deployBranch ?: ((env.DEFAULT_DEPLOY_BRANCH ?: "").trim() ?: 'master')
   // will need to check later if user provided chartFolder location
   def userSpecifiedChartFolder = config.chartFolder
   def chartFolder = userSpecifiedChartFolder ?: ((System.getenv("CHART_FOLDER") ?: "").trim() ?: 'chart')
@@ -112,10 +67,10 @@ def call(body) {
   def libertyLicenseJarBaseUrl = (System.getenv("LIBERTY_LICENSE_JAR_BASE_URL") ?: "").trim()
   def libertyLicenseJarName = config.libertyLicenseJarName ?: (System.getenv("LIBERTY_LICENSE_JAR_NAME") ?: "").trim()
   def alwaysPullImage = (System.getenv("ALWAYS_PULL_IMAGE") == null) ? true : System.getenv("ALWAYS_PULL_IMAGE").toBoolean()
-  def mavenSettingsConfigMap = System.getenv("MAVEN_SETTINGS_CONFIG_MAP")?.trim()
+  def mavenSettingsConfigMap = System.getenv("MAVEN_SETTINGS_CONFIG_MAP")?.trim() 
 
   print "microserviceBuilderPipeline: registry=${registry} registrySecret=${registrySecret} build=${build} \
-  deploy=${deploy} test=${test} debug=${debug} namespace=${namespace} \
+  deploy=${deploy} deployBranch=${deployBranch} test=${test} debug=${debug} namespace=${namespace} \
   chartFolder=${chartFolder} manifestFolder=${manifestFolder} alwaysPullImage=${alwaysPullImage}"
 
   // We won't be able to get hold of registrySecret if Jenkins is running in a non-default namespace that is not the deployment namespace.
@@ -150,20 +105,8 @@ def call(body) {
 
       stage ('Extract') {
         checkout scm
-
-        // branch could be null but then they're being weird: the UI should prevent this!
-        // it means they're calling our API directly
-        // todo guard against branch being null, it defaults to master
-        sh(script: 'git checkout ${branch}')
-
-        if (commit) {
-          echo "Checking out commit ${commit}"
-          gitCommit = sh(script: 'git checkout ${commit}')
-        } else {
-          echo "Checking out the last commit from branch ${branch}"
-          gitCommit = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-        }
-        // todo get the last commit message as well and echo it here
+        gitCommit = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+        echo "checked out git commit ${gitCommit}"
       }
 
       def imageTag = null
@@ -188,7 +131,7 @@ def call(body) {
               buildCommand += "--label org.label-schema.schema-version=\"1.0\" "
               def scmUrl = scm.getUserRemoteConfigs()[0].getUrl()
               buildCommand += "--label org.label-schema.vcs-url=\"${scmUrl}\" "
-              buildCommand += "--label org.label-schema.vcs-ref=\"${gitCommit}\" "
+              buildCommand += "--label org.label-schema.vcs-ref=\"${gitCommit}\" "  
               buildCommand += "--label org.label-schema.name=\"${image}\" "
               def buildDate = sh(returnStdout: true, script: "date -Iseconds").trim()
               buildCommand += "--label org.label-schema.build-date=\"${buildDate}\" "
@@ -245,7 +188,7 @@ def call(body) {
               giveRegistryAccessToNamespace (testNamespace, registrySecret)
             }
           }
-
+          
           container ('helm') {
             sh "/helm init --client-only --skip-refresh"
             def deployCommand = "/helm install ${realChartFolder} --wait --set test=true --values pipeline.yaml --namespace ${testNamespace} --name ${tempHelmRelease}"
@@ -281,36 +224,16 @@ def call(body) {
         }
       }
 
-      // Warning, warning: they might not have built yet! todo add a check
-      // also, we can only set one deploy branch right now, it's just a string not an array of strings!
-      // todo what if they want to deploy a specific thing?
-
-      if (deploy) {
+      if (deploy && env.BRANCH_NAME == deployBranch) {
         stage ('Deploy') {
           deployProject (realChartFolder, registry, image, imageTag, namespace, manifestFolder)
         }
       }
     }
-  }  
+  }
 }
 
 def deployProject (String chartFolder, String registry, String image, String imageTag, String namespace, String manifestFolder) {
-  
-  /*
-  // todo check if namespace exists with kubectl
-  found_namespace_rc = sh "kubectl get namespace ${namespace}"
-  if (found_namespace_rc != 0) {
-   // blow up with an error 1
-    return 1
-  }
-
-  found_image_rc = sh "docker image ls $image:$imageTag | grep \"^$image \""
-  if (found_image_rc != 0) {
-    // blow up with an error 2
-    return 2
-  }
-  */
-
   if (chartFolder != null && fileExists(chartFolder)) {
     container ('helm') {
       sh "/helm init --client-only --skip-refresh"
@@ -335,7 +258,6 @@ def deployProject (String chartFolder, String registry, String image, String ima
 /*
   We have a (temporary) namespace that we want to grant ICP registry access to.
   String namespace: target namespace
-
   1. Port registrySecret into a temporary namespace
   2. Modify 'default' serviceaccount to use ported registrySecret.
 */
@@ -385,6 +307,8 @@ def getChartFolder(String userSpecified, String currentChartFolder) {
           return null
         }
       }
+    } else {
+      if (dirList.size() == 1) {
         def chartFile = new hudson.FilePath(dirList.get(0), "Chart.yaml")
         newChartLocation = currentChartFolder + "/" + dirList.get(0).getName()
         if (chartFile.exists()) {
