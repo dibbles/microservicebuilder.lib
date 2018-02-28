@@ -278,12 +278,11 @@ def call(body) {
       }
 
       if (deploy) {
+        echo "Deploying..."
         stage ('Deploy') {
           deployProject (realChartFolder, registry, image, imageTag, namespace, manifestFolder)
         }
       }
-      
-      
     }
   }
 }
@@ -292,6 +291,7 @@ def deployProject (String chartFolder, String registry, String image, String ima
   
   // Check their image does exist and that the namespace they want to deploy into does as well
   container ('kubectl') {
+    echo "Checking the namespace to deploy into exists, and so does the image..."
     found_namespace_rc = sh "kubectl get namespace ${namespace}"
     if (found_namespace_rc != 0) {
      // blow up with an error 1
