@@ -38,9 +38,14 @@ import java.util.UUID
 import groovy.json.JsonOutput;
 import groovy.json.JsonSlurperClassic;
 
-def tocheckout = params.tocheckout
-
 def call(body) {
+  
+  properties([
+      parameters([
+          string(name: 'tocheckout', defaultValue: '')
+      ])
+  ])
+
   def config = [:]
   // Parameter expansion works after the call to body() below.
   // See https://jenkins.io/doc/book/pipeline/shared-libraries/ 'Defining a more structured DSL'
