@@ -38,6 +38,12 @@ import java.util.UUID
 import groovy.json.JsonOutput;
 import groovy.json.JsonSlurperClassic;
 
+properties([
+      parameters([
+          string(name: 'tocheckout', defaultValue: '')
+      ])
+  ])
+
 def call(body) {
   def config = [:]
   // Parameter expansion works after the call to body() below.
