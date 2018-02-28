@@ -124,12 +124,12 @@ def call(body) {
         echo "tocheckout is ${tocheckout}"
         
         // Todo if they specify a certain Git commit, don't do this
-        if !${tocheckout} {
-          echo "Checking out the last commit..."
-          gitCommit = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-        else
+        if ${tocheckout} {          
           echo "Checking out a specific commit..."
           gitCommit = sh(script: 'git checkout ${tocheckout}')  
+        else          
+          echo "Checking out the last commit..."
+          gitCommit = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
         }
         
         echo "checked out git commit ${gitCommit}"
