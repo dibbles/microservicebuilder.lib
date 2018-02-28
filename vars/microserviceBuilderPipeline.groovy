@@ -315,6 +315,11 @@ def deployProject (String chartFolder, String registry, String image, String ima
       if (namespace) deployCommand += " --namespace ${namespace}"
       def releaseName = (env.BRANCH_NAME == "master") ? "${image}" : "${image}-${branch}-${commit}"
       deployCommand += " ${releaseName} ${chartFolder}"
+      
+      echo "Printing all found docker images before deploying..."
+      sh "docker images"
+      echo ""
+      echo "deployCommand is $deployCommand"
       sh deployCommand
     }
   } else if (fileExists(manifestFolder)) {
