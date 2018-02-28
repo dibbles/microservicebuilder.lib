@@ -287,7 +287,7 @@ def call(body) {
       // also, we can only set one deploy branch right now, it's just a string not an array of strings!
       // todo what if they want to deploy a specific thing?
       
-      if (deploy && branch == deployBranch) {
+      if (deploy) {
         stage ('Deploy') {
           deployProject (realChartFolder, registry, image, imageTag, namespace, manifestFolder)
         }
