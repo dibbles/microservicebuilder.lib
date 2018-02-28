@@ -71,6 +71,8 @@ def call(body) {
   def namespace = (config.namespace ?: env.NAMESPACE ?: "").trim()  
   def tocheckout = (config.tocheckout ?: env.TOCHECKOUT ?: "").trim()  
   
+  echo "Input, tocheckout is ${tocheckout}"
+  
   // these options were all added later. Helm chart may not have the associated properties set.
   def test = (config.test ?: (env.TEST ?: "false").trim()).toLowerCase() == 'true'
   def debug = (config.debug ?: (env.DEBUG ?: "false").trim()).toLowerCase() == 'true'
