@@ -1,5 +1,3 @@
-intentional error
-
 #!groovy
 // Copyright (c) IBM 2017
 
