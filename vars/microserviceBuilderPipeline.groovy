@@ -290,7 +290,7 @@ def call(body) {
           deployProject (realChartFolder, registry, image, imageTag, namespace, manifestFolder)
         }
       }
-    
+    }
   }  
 }
 
