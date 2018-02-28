@@ -1,4 +1,3 @@
-
 #!groovy
 // Copyright (c) IBM 2017
 
