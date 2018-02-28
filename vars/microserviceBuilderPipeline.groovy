@@ -124,7 +124,7 @@ def call(body) {
         echo "tocheckout is ${tocheckout}"
         
         // Todo if they specify a certain Git commit, don't do this
-        if ${tocheckout} {          
+        if $tocheckout {
           echo "Checking out a specific commit..."
           gitCommit = sh(script: 'git checkout ${tocheckout}')  
         else          
