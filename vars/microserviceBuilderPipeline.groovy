@@ -295,6 +295,8 @@ def call(body) {
 }
 
 def deployProject (String chartFolder, String registry, String image, String imageTag, String namespace, String manifestFolder) {
+  
+  /*
   // todo check if namespace exists with kubectl
   found_namespace_rc = sh "kubectl get namespace ${namespace}"
   if (found_namespace_rc != 0) {
@@ -307,6 +309,7 @@ def deployProject (String chartFolder, String registry, String image, String ima
     // blow up with an error 2
     return 2
   }
+  */
 
   if (chartFolder != null && fileExists(chartFolder)) {
     container ('helm') {
