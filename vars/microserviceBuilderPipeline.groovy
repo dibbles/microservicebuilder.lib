@@ -127,7 +127,7 @@ def call(body) {
         if (tocheckout) {
           echo "Checking out a specific commit..."
           gitCommit = sh(script: 'git checkout ${tocheckout}')  
-        else          
+        } else {
           echo "Checking out the last commit..."
           gitCommit = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
         }
