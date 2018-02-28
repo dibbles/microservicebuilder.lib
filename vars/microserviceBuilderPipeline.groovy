@@ -34,6 +34,17 @@ import groovy.json.JsonOutput;
 import groovy.json.JsonSlurperClassic;
 
 def call(body) {
+  
+  properties([
+      parameters([
+          string(name: 'commit', defaultValue: '', description: 'The commit to checkout'),
+          string(name: 'branch', defaultValue: 'master', description: 'The branch to checkout'),
+          string(name: 'namespace', defaultValue: '', description: 'The target namespace'),
+          booleanParam(name: 'build', defaultValue: true, description: 'Build your project?'),
+          booleanParam(name: 'deploy', defaultValue: false, description: 'Deploy your project?')
+      ])
+  ])
+
   def config = [:]
   // Parameter expansion works after the call to body() below.
   // See https://jenkins.io/doc/book/pipeline/shared-libraries/ 'Defining a more structured DSL'
@@ -41,8 +52,36 @@ def call(body) {
   body.delegate = config
   body()
 
-  print "microserviceBuilderPipeline : config = ${config}"
+    print "microserviceBuilderPipeline : config = ${config}"
 
+  print "In the custom version by Adam"
+
+  // From Jenkins, these will be available as parameters.
+  // Users can override it in their Jenkinsfile.
+  // TODO check precedence! Which gets used if in both Jenkins job AND their Jenkinsfile?
+
+  // Example usage
+  // project-namespace here is the Jenkins folder name
+
+  // POST http://jenkins.192.168.42.21.nip.io/job/(project-namespace)/job/(project-name)/job/(any branch that exists)/buildWithParameters?branch=(branch-to-build-and-or-deploy)&commit=bigmac&build=true&deploy=false&namespace=(the target namespace)
+
+  def commit = (config.commit ?: env.COMMIT ?: "").trim()
+  echo "Input, commit to checkout is ${commit}"
+
+  def branch = (config.branch ?: env.BRANCH ?: "").trim()
+  echo "Input, branch to checkout is ${branch}"
+
+  def namespace = (config.commit ?: env.NAMESPACE ?: "").trim()
+  echo "Input, namespace to deploy into is ${namespace}"
+
+  // Important to note this defaults to false!
+  def deploy = (config.deploy ?: env.DEPLOY ?: "false").toBoolean()
+  echo "Input, deploy is ${deploy}"
+
+  def build = (config.build ?: env.BUILD ?: "true").toBoolean()
+  echo "Input, build is ${build}"
+
+  // Not necessarily exposed via Jenkins
   def image = config.image
   def maven = (config.mavenImage == null) ? 'maven:3.5.2-jdk-8' : config.mavenImage
   def docker = (config.dockerImage == null) ? 'ibmcom/docker:17.10' : config.dockerImage
@@ -52,14 +91,16 @@ def call(body) {
   def registry = (env.REGISTRY ?: "").trim()
   if (registry && !registry.endsWith('/')) registry = "${registry}/"
   def registrySecret = (env.REGISTRY_SECRET ?: "").trim()
-  def build = (config.build ?: env.BUILD ?: "true").toBoolean()
-  def deploy = (config.deploy ?: env.DEPLOY ?: "true").toBoolean()
-  def namespace = (config.namespace ?: env.NAMESPACE ?: "").trim()
 
   // these options were all added later. Helm chart may not have the associated properties set.
   def test = (config.test ?: (env.TEST ?: "false").trim()).toLowerCase() == 'true'
   def debug = (config.debug ?: (env.DEBUG ?: "false").trim()).toLowerCase() == 'true'
-  def deployBranch = config.deployBranch ?: ((env.DEFAULT_DEPLOY_BRANCH ?: "").trim() ?: 'master')
+
+  // Allows users to specify a named deployment branch; code that goes here will be deployed
+  // and automatically if they have a hook set up.
+  // something like this eventually where we have auto deploy branches in the Project CRD
+  // def autoDeployBranches = config.autoDeployBranches ?: ((env.AUTO_DEPLOY_BRANCHES ?: "").trim() ?: ['master', 'deploy'])
+
   // will need to check later if user provided chartFolder location
   def userSpecifiedChartFolder = config.chartFolder
   def chartFolder = userSpecifiedChartFolder ?: ((System.getenv("CHART_FOLDER") ?: "").trim() ?: 'chart')
@@ -67,10 +108,10 @@ def call(body) {
   def libertyLicenseJarBaseUrl = (System.getenv("LIBERTY_LICENSE_JAR_BASE_URL") ?: "").trim()
   def libertyLicenseJarName = config.libertyLicenseJarName ?: (System.getenv("LIBERTY_LICENSE_JAR_NAME") ?: "").trim()
   def alwaysPullImage = (System.getenv("ALWAYS_PULL_IMAGE") == null) ? true : System.getenv("ALWAYS_PULL_IMAGE").toBoolean()
-  def mavenSettingsConfigMap = System.getenv("MAVEN_SETTINGS_CONFIG_MAP")?.trim() 
+  def mavenSettingsConfigMap = System.getenv("MAVEN_SETTINGS_CONFIG_MAP")?.trim()
 
   print "microserviceBuilderPipeline: registry=${registry} registrySecret=${registrySecret} build=${build} \
-  deploy=${deploy} deployBranch=${deployBranch} test=${test} debug=${debug} namespace=${namespace} \
+  deploy=${deploy} test=${test} debug=${debug} namespace=${namespace} \
   chartFolder=${chartFolder} manifestFolder=${manifestFolder} alwaysPullImage=${alwaysPullImage}"
 
   // We won't be able to get hold of registrySecret if Jenkins is running in a non-default namespace that is not the deployment namespace.
@@ -105,8 +146,20 @@ def call(body) {
 
       stage ('Extract') {
         checkout scm
-        gitCommit = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-        echo "checked out git commit ${gitCommit}"
+
+        // branch could be null but then they're being weird: the UI should prevent this!
+        // it means they're calling our API directly
+        // todo guard against branch being null, it defaults to master
+        sh(script: 'git checkout ${branch}')
+
+        if (commit) {
+          echo "Checking out commit ${commit}"
+          gitCommit = sh(script: 'git checkout ${commit}')
+        } else {
+          echo "Checking out the last commit from branch ${branch}"
+          gitCommit = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+        }
+        // todo get the last commit message as well and echo it here
       }
 
       def imageTag = null
