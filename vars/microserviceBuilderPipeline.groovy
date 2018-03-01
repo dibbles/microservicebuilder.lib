@@ -68,7 +68,7 @@ def call(body) {
   def commit = (config.commit ?: env.COMMIT ?: "").trim()
   echo "Input, commit to checkout is ${commit}"
 
-  def branch = (config.branch ?: env.BRANCH ?: "").trim()
+  def branch = env.BRANCH_NAME ?: "").trim()
   echo "Input, branch to checkout is ${branch}"
 
   def namespace = (config.commit ?: env.NAMESPACE ?: "").trim()
@@ -155,7 +155,6 @@ def call(body) {
           // which is configurable
           gitCommit = commit
         }        
-        // Bit weird
         checkout([$class: 'GitSCM', $branches: [[name: gitCommit]]])
       }
 
