@@ -62,7 +62,10 @@ def call(body) {
   // Example usage
   // project-namespace here is the Jenkins folder name
 
-  // POST http://jenkins.192.168.42.21.nip.io/job/(project-namespace)/job/(project-name)/job/(any branch that exists)/buildWithParameters?branch=(branch-to-build-and-or-deploy)&commit=bigmac&build=true&deploy=false&namespace=(the target namespace)
+  // POST http://jenkins.192.168.42.21.nip.io/job/(project-namespace)/job/(project-name)/job/(branch)/buildWithParameters?commit=bigmac&build=true&deploy=false&namespace=(the target namespace)
+  
+  // User picks a branch? Build and/or deploy the latest on that branch
+  // User picks a commit? Build and/or deploy that
 
   def commit = (config.commit ?: env.COMMIT ?: "").trim()
   echo "Input, commit to checkout is ${commit}"
