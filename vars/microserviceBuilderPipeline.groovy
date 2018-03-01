@@ -154,9 +154,10 @@ def call(body) {
           gitCommit = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
         } else {
           // todo handle full commit hash being set by the caller, only accept short or helm won't like it
-          gitCommit = commit
+          gitCommit = commit          
         }
         
+        /*
         def scmUrl = scm.getUserRemoteConfigs()[0].getUrl()
         def scmCredentials = scm.getUserRemoteConfigs()[0].getCredentialsId()        
         
@@ -165,8 +166,14 @@ def call(body) {
         echo "Credentials ID to use is $scmCredentials"
         
         checkout (
-          [$class: 'GitSCM', branches: [[name: gitCommit]], userRemoteConfigs: [[url: scmUrl], [credentialsId: scmCredentials]]]
+          [$class: 'GitSCM',
+          branches: [[name: gitCommit]], 
+          userRemoteConfigs: [[url: scmUrl], 
+          [credentialsId: scmCredentials]]]
         )
+        */
+        
+        checkout scm        
       }
 
       def imageTag = null
