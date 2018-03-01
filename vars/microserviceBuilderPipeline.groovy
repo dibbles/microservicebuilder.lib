@@ -157,10 +157,10 @@ def call(body) {
           gitCommit = commit
         }
         
-        echo "To checkout $gitCommit"
+        echo "To checkout $gitCommit"        
+        def scmUrl = scm.getUserRemoteConfigs()[0].getUrl()
         echo "Url to clone from is $scmUrl"
         
-        def scmUrl = scm.getUserRemoteConfigs()[0].getUrl()
         checkout([$class: 'GitSCM', branches: [[name: gitCommit]], userRemoteConfigs: [[url: scmUrl]]])
       }
 
