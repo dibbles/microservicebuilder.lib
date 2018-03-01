@@ -340,10 +340,10 @@ def deployProject (String chartFolder, String registry, String image, String ima
       if (namespace) deployCommand += " --namespace ${namespace}"
       
       if (debug) {
-        echo "In the deploy step, image/branch/commit as follows: ${image}-${branch}-${commit}"       
+        echo "In the deploy step, image/branch/commit as follows: ${image}-${commit}"
       }
       
-      def releaseName = (env.BRANCH_NAME == "master") ? "${image}" : "${image}-${branch}-${commit}"
+      def releaseName = (env.BRANCH_NAME == "master") ? "${image}" : "${image}-${commit}"
       
       if (debug) {        
         echo "Release name will be ${releaseName}"
