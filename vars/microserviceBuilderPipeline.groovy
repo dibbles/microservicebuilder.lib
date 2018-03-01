@@ -162,8 +162,9 @@ def call(body) {
         } else {
           // todo handle full commit hash being set by the caller, only accept short or helm won't like it
           echo "A commit's provided, using that"
-          gitCommit = commit          
-        }                
+          gitCommit = commit
+        }        
+        echo "The commit to use is ${gitCommit}"
         sh "git checkout -f ${gitCommit}"
       }
 
