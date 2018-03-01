@@ -155,9 +155,8 @@ def call(body) {
           // which is configurable
           gitCommit = commit
         }        
-        scm.GIT_COMMIT = gitCommit
-        sc.BRANCH = branch
-        checkout scm
+        // Bit weird
+        checkout([$class: 'GitSCM', $branches: [[name: gitCommit]]])
       }
 
       def imageTag = null
