@@ -167,7 +167,7 @@ def call(body) {
         echo "The commit to use is ${gitCommit}"
         sh "git checkout -f ${gitCommit}"
       }
-
+      
       def imageTag = null
       if (build) {
         if (fileExists('pom.xml')) {
@@ -256,6 +256,10 @@ def call(body) {
           
           container ('helm') {
             sh "/helm init --client-only --skip-refresh"
+            
+            echo "pipeline.yaml contains..."            
+            sh(script: 'cat pipeline.yaml', returnStdout: true)
+            
             def deployCommand = "/helm install ${realChartFolder} --wait --set test=true --values pipeline.yaml --namespace ${testNamespace} --name ${tempHelmRelease}"
             if (fileExists("chart/overrides.yaml")) {
               deployCommand += " --values chart/overrides.yaml"
@@ -327,10 +331,10 @@ def deployProject (String chartFolder, String registry, String image, String ima
       if (namespace) deployCommand += " --namespace ${namespace}"
       
       if (debug) {
-        echo "In the deploy step, image/branch/commit as follows: ${image}-${commit}"
+        echo "In the deploy step, image-gitCommit is as follows: ${image}-${gitCommit}"
       }
       
-      def releaseName = (env.BRANCH_NAME == "master") ? "${image}" : "${image}-${commit}"
+      def releaseName = (env.BRANCH_NAME == "master") ? "${image}" : "${image}-${gitCommit}"
       
       if (debug) {        
         echo "Release name will be ${releaseName}"
