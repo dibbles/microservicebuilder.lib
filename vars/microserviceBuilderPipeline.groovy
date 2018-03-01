@@ -153,32 +153,16 @@ def call(body) {
     node('msbPod') {
       def gitCommit
 
-      stage ('Extract') {
+      stage ('Extract') {        
+        checkout scm        
         // No commit specified? Get the latest, short version
         if (!commit) {
           gitCommit = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
         } else {
           // todo handle full commit hash being set by the caller, only accept short or helm won't like it
           gitCommit = commit          
-        }
-        
-        /*
-        def scmUrl = scm.getUserRemoteConfigs()[0].getUrl()
-        def scmCredentials = scm.getUserRemoteConfigs()[0].getCredentialsId()        
-        
-        echo "To checkout $gitCommit"        
-        echo "Url to clone from is $scmUrl"
-        echo "Credentials ID to use is $scmCredentials"
-        
-        checkout (
-          [$class: 'GitSCM',
-          branches: [[name: gitCommit]], 
-          userRemoteConfigs: [[url: scmUrl], 
-          [credentialsId: scmCredentials]]]
-        )
-        */
-        
-        checkout scm        
+        }                
+        sh "git checkout -f ${gitCommit}"
       }
 
       def imageTag = null
