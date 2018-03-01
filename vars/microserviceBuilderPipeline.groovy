@@ -157,8 +157,11 @@ def call(body) {
           // caller (e.g. web UI) should handle this as it depends on the Git abbrev length
           // which is configurable
           gitCommit = commit
-        }        
-        checkout([$class: 'GitSCM', $branches: [[name: gitCommit]]])
+        }
+        echo "To checkout $gitCommit"
+        
+        checkout([$class: 'GitSCM', branches: [[name: gitCommit]],
+          userRemoteConfigs: [[url: env.GIT_URL]]])
       }
 
       def imageTag = null
