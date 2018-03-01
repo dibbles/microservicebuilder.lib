@@ -152,7 +152,7 @@ def call(body) {
           // They could provide us with a big one we won't be able to handle
           // caller (e.g. web UI) should handle this as it depends on the Git abbrev length
           // which is configurable
-          gitCommit = commit.trim()
+          gitCommit = commit
         }        
         checkout scm: [$class: 'GitSCM', branch: $branch, commitId: $gitCommit]
       }
