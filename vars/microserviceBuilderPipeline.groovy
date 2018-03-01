@@ -254,16 +254,17 @@ def call(body) {
             }
           }
           
-          container ('helm') {
-            sh "/helm init --client-only --skip-refresh"
-            
+          container ('helm') {            
             echo "pipeline.yaml contains..."            
             sh(script: 'cat pipeline.yaml', returnStdout: true)
+            
+            sh "/helm init --client-only --skip-refresh"            
             
             def deployCommand = "/helm install ${realChartFolder} --wait --set test=true --values pipeline.yaml --namespace ${testNamespace} --name ${tempHelmRelease}"
             if (fileExists("chart/overrides.yaml")) {
               deployCommand += " --values chart/overrides.yaml"
-            }
+            }            
+            
             sh deployCommand
           }
 
@@ -334,6 +335,9 @@ def deployProject (String chartFolder, String registry, String image, String ima
       
       if (debug) {        
         echo "Release name will be ${releaseName}"
+        echo "Pipeline contents as follows"
+        
+        
       }
       
       deployCommand += " ${releaseName} ${chartFolder}"
