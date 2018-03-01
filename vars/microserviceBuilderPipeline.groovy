@@ -157,9 +157,11 @@ def call(body) {
         checkout scm        
         // No commit specified? Get the latest, short version
         if (!commit) {
+          echo "No commit specified, getting the latest and ensuring short version used"
           gitCommit = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
         } else {
           // todo handle full commit hash being set by the caller, only accept short or helm won't like it
+          echo "A commit's provided, using that"
           gitCommit = commit          
         }                
         sh "git checkout -f ${gitCommit}"
