@@ -151,9 +151,10 @@ def call(body) {
         } else {
           gitCommit = commit
         }        
-        scm.branch = ${branch}        
+        scm.branch = branch
         // Let's use the one variable to represent the actual Git commit ID we'll be using from now on
-        scm.commitId = ${gitCommit}        
+        scm.commitId = gitCommit
+        echo "Checking out ${scm.branch}/${scm.commitId}"
         checkout scm
       }
 
