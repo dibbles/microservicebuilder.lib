@@ -153,21 +153,15 @@ def call(body) {
         if (!commit) {
           gitCommit = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
         } else {
-          // They could provide us with a big one we won't be able to handle
-          // caller (e.g. web UI) should handle this as it depends on the Git abbrev length
-          // which is configurable
+          // todo handle full commit hash being set by the caller, only accept short or helm won't like it
           gitCommit = commit
         }
         
         echo "To checkout $gitCommit"
+        echo "Url to clone from is $scmUrl"
         
-        theUrl = env.GIT_URL        
-        andAgain = System.getenv("GIT_URL")        
-        
-        echo "Url to clone from is $theUrl"
-        echo "Url to clone from is $andAgain"
-        
-        checkout([$class: 'GitSCM', branches: [[name: gitCommit]], userRemoteConfigs: [[url: theUrl]]])
+        def scmUrl = scm.getUserRemoteConfigs()[0].getUrl()
+        checkout([$class: 'GitSCM', branches: [[name: gitCommit]], userRemoteConfigs: [[url: scmUrl]]])
       }
 
       def imageTag = null
