@@ -152,11 +152,14 @@ def call(body) {
       def gitCommit
 
       stage ('Extract') {
-        // No commit specified? Get the latest, shorthand version
+        // No commit specified? Get the latest, short version
         if (!commit) {
-          gitCommit = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim().substring(0,7)
+          gitCommit = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
         } else {
-          gitCommit = commit
+          // They could provide us with a big one we won't be able to handle
+          // caller (e.g. web UI) should handle this as it depends on the Git abbrev length
+          // which is configurable
+          gitCommit = commit.trim()
         }        
         scm.branch = branch
         // Let's use the one variable to represent the actual Git commit ID we'll be using from now on
