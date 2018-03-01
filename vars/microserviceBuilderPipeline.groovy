@@ -52,7 +52,7 @@ def call(body) {
   body.delegate = config
   body()
 
-    print "microserviceBuilderPipeline : config = ${config}"
+  print "microserviceBuilderPipeline : config = ${config}"
 
   print "In the custom version by Adam"
 
@@ -108,17 +108,11 @@ def call(body) {
   def libertyLicenseJarBaseUrl = (System.getenv("LIBERTY_LICENSE_JAR_BASE_URL") ?: "").trim()
   def libertyLicenseJarName = config.libertyLicenseJarName ?: (System.getenv("LIBERTY_LICENSE_JAR_NAME") ?: "").trim()
   def alwaysPullImage = (System.getenv("ALWAYS_PULL_IMAGE") == null) ? true : System.getenv("ALWAYS_PULL_IMAGE").toBoolean()
-<<<<<<< HEAD
   def mavenSettingsConfigMap = System.getenv("MAVEN_SETTINGS_CONFIG_MAP")?.trim()
 
   print "microserviceBuilderPipeline: registry=${registry} registrySecret=${registrySecret} build=${build} \
   deploy=${deploy} test=${test} debug=${debug} namespace=${namespace} \
-=======
-  def mavenSettingsConfigMap = System.getenv("MAVEN_SETTINGS_CONFIG_MAP")?.trim() 
 
-  print "microserviceBuilderPipeline: registry=${registry} registrySecret=${registrySecret} build=${build} \
-  deploy=${deploy} deployBranch=${deployBranch} test=${test} debug=${debug} namespace=${namespace} \
->>>>>>> 17f9d610ef18179d153fe23915a21db6f3c4fdb6
   chartFolder=${chartFolder} manifestFolder=${manifestFolder} alwaysPullImage=${alwaysPullImage}"
 
   // We won't be able to get hold of registrySecret if Jenkins is running in a non-default namespace that is not the deployment namespace.
@@ -344,10 +338,6 @@ def deployProject (String chartFolder, String registry, String image, String ima
 /*
   We have a (temporary) namespace that we want to grant ICP registry access to.
   String namespace: target namespace
-<<<<<<< HEAD
-=======
-
->>>>>>> 17f9d610ef18179d153fe23915a21db6f3c4fdb6
   1. Port registrySecret into a temporary namespace
   2. Modify 'default' serviceaccount to use ported registrySecret.
 */
