@@ -155,7 +155,8 @@ def call(body) {
 
       stage ('Extract') {
         
-        checkout scm
+        //checkout scm
+        
         // No commit specified? Get the latest, short version. Could be just a branch
         if (!commit) {
           echo "No commit specified, getting the latest and ensuring short version used"
