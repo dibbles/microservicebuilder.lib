@@ -163,8 +163,9 @@ def call(body) {
         
         theUrl = env.GIT_URL
         andAgain = System.getenv("GIT_URL")
+        echo env        
         echo "Url to clone from is $theUrl"
-        echo "Url to clone from is $andAgain
+        echo "Url to clone from is $andAgain"
         
         checkout([$class: 'GitSCM', branches: [[name: gitCommit]], userRemoteConfigs: [[url: theUrl]]])
       }
