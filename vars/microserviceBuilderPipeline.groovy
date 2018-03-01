@@ -173,8 +173,11 @@ def call(body) {
         */
                                 
         def scmUrl = scm.getUserRemoteConfigs()[0].getUrl()
+        echo "scm url: $scmUrl"
         def creds = scm.getUserRemoteConfigs()[0].getCredentialsId()
-        sh(script: 'git clone ${scmUrl}')
+        echo "creds: $creds"
+        
+        sh(script: 'git clone $scmUrl')
         sh(script: 'git checkout -f ${gitCommit}')
         
         /*
