@@ -174,8 +174,10 @@ def call(body) {
         def scmUrl = scm.getUserRemoteConfigs()[0].getUrl()
         def creds = scm.getUserRemoteConfigs()[0].getCredentialsId()
         
-        checkout([$class: 'GitSCM', branches: [[name: gitCommit ]],
-          userRemoteConfigs: [[url: scmUrl], [credentialsId: creds]])
+        checkout(
+          [$class: 'GitSCM', branches: [[name: gitCommit ]],
+          userRemoteConfigs: [[url: scmUrl], [credentialsId: creds]]]
+        )
         
       }
       
@@ -348,7 +350,8 @@ def deployProject (String chartFolder, String registry, String image, String ima
         echo "Release name will be ${releaseName}"
         echo "Pipeline contents as follows"
         
-        
+        contents = sh(script: 'cat pipeline.yaml')
+        echo contents
       }
       
       deployCommand += " ${releaseName} ${chartFolder}"
