@@ -162,9 +162,7 @@ def call(body) {
         echo "To checkout $gitCommit"
         
         theUrl = env.GIT_URL        
-        andAgain = System.getenv("GIT_URL")
-        
-        echo $env
+        andAgain = System.getenv("GIT_URL")        
         
         echo "Url to clone from is $theUrl"
         echo "Url to clone from is $andAgain"
