@@ -88,10 +88,11 @@ def call(body) {
   def kubectl = (config.kubectlImage == null) ? 'ibmcom/k8s-kubectl:v1.8.3' : config.kubectlImage
   def helm = (config.helmImage == null) ? 'ibmcom/k8s-helm:v2.6.0' : config.helmImage
   def mvnCommands = (config.mvnCommands == null) ? 'clean package' : config.mvnCommands
-  def registry = env.REGISTRY.trim()
-  if (registry && !registry.endsWith('/')) registry = "${registry}/"
-  def registrySecret = System.getenv("REGISTRY_SECRET").trim()  
 
+  def registry = (env.REGISTRY ?: "").trim()
+  if (registry && !registry.endsWith('/')) registry = "${registry}/"
+  def registrySecret = (env.REGISTRY_SECRET ?: "").trim()
+  
   // these options were all added later. Helm chart may not have the associated properties set
   def test = (config.test ?: (System.getenv ("TEST") ?: "false").trim()).toLowerCase() == 'true'
   def debug = (config.debug ?: (System.getenv ("DEBUG") ?: "false").trim()).toLowerCase() == 'true'
