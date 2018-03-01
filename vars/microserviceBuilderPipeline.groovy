@@ -112,7 +112,6 @@ def call(body) {
 
   print "microserviceBuilderPipeline: registry=${registry} registrySecret=${registrySecret} build=${build} \
   deploy=${deploy} test=${test} debug=${debug} namespace=${namespace} \
-
   chartFolder=${chartFolder} manifestFolder=${manifestFolder} alwaysPullImage=${alwaysPullImage}"
 
   // We won't be able to get hold of registrySecret if Jenkins is running in a non-default namespace that is not the deployment namespace.
@@ -155,11 +154,7 @@ def call(body) {
           // which is configurable
           gitCommit = commit.trim()
         }        
-        scm.branch = branch
-        // Let's use the one variable to represent the actual Git commit ID we'll be using from now on
-        scm.commitId = gitCommit
-        echo "Checking out ${scm.branch}/${scm.commitId}"
-        checkout scm
+        checkout scm: [$class: 'GitSCM', branch: $branch, commitId: $gitCommit]
       }
 
       def imageTag = null
@@ -206,8 +201,14 @@ def call(body) {
               }
               sh buildCommand
               if (registry) {
-                sh "docker tag ${image}:${imageTag} ${registry}${image}:${imageTag}"
-                sh "docker push ${registry}${image}:${imageTag}"
+                docker_tag_command = "docker tag ${image}:${imageTag} ${registry}${image}:${imageTag}"
+                docker_push_command = "docker push ${registry}${image}:${imageTag}"
+                
+                echo "Tagging with $docker_tag_command"
+                echo "Pushing with $docker_push_command"
+                
+                sh docker_tag_command
+                sh docker_push_command
               }
             }
           }
