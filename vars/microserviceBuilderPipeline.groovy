@@ -145,21 +145,16 @@ def call(body) {
       def gitCommit
 
       stage ('Extract') {
-        checkout scm
-
-        // branch could be null but then they're being weird: the UI should prevent this!
-        // it means they're calling our API directly
-        // todo guard against branch being null, it defaults to master
-        sh(script: 'git checkout ${branch}')
-
-        if (commit) {
-          echo "Checking out commit ${commit}"
-          gitCommit = sh(script: 'git checkout ${commit}')
+        // No commit specified? Get the latest, shorthand version
+        if (!commit) {
+          gitCommit = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim().substring(0,7)
         } else {
-          echo "Checking out the last commit from branch ${branch}"
-          gitCommit = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-        }
-        // todo get the last commit message as well and echo it here
+          gitCommit = commit
+        }        
+        scm.branch = ${branch}        
+        // Let's use the one variable to represent the actual Git commit ID we'll be using from now on
+        scm.commitId = ${gitCommit}        
+        checkout scm
       }
 
       def imageTag = null
