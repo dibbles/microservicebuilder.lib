@@ -88,7 +88,7 @@ def call(body) {
   def kubectl = (config.kubectlImage == null) ? 'ibmcom/k8s-kubectl:v1.8.3' : config.kubectlImage
   def helm = (config.helmImage == null) ? 'ibmcom/k8s-helm:v2.6.0' : config.helmImage
   def mvnCommands = (config.mvnCommands == null) ? 'clean package' : config.mvnCommands
-  def registry = System.getenv("REGISTRY").trim()
+  def registry = env.REGISTRY.trim()
   if (registry && !registry.endsWith('/')) registry = "${registry}/"
   def registrySecret = System.getenv("REGISTRY_SECRET").trim()  
 
