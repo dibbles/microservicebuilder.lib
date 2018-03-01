@@ -153,9 +153,10 @@ def call(body) {
     node('msbPod') {
       def gitCommit
 
-      stage ('Extract') {        
-        checkout scm        
-        // No commit specified? Get the latest, short version
+      stage ('Extract') {
+        
+        checkout scm
+        // No commit specified? Get the latest, short version. Could be just a branch
         if (!commit) {
           echo "No commit specified, getting the latest and ensuring short version used"
           gitCommit = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
@@ -163,21 +164,19 @@ def call(body) {
           // todo handle full commit hash being set by the caller, only accept short or helm won't like it
           echo "A commit's provided, using that"
           gitCommit = commit
-        }        
+        }
         
+        /*
         echo "The commit to use is ${gitCommit}"
-        
-        if (debug) {
-          echo "Before checking out code..."
-          sh(script: 'git branch -a', returnStdout: true)
-        }        
-        
         sh(script: 'git checkout ${gitCommit}', returnStdout: true)
+        */
         
-        if (debug) {                    
-          echo "After checking out code..."
-          sh(script: 'git branch -a', returnStdout: true)
-        }        
+        def scmUrl = scm.getUserRemoteConfigs()[0].getUrl()
+        def creds = scm.getUserRemoteConfigs()[0].getCredentialsId()
+        
+        checkout([$class: 'GitSCM', branches: [[name: gitCommit ]],
+          userRemoteConfigs: [[url: scmUrl], [credentialsId: creds]])
+        
       }
       
       def imageTag = null
