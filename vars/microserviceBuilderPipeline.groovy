@@ -157,11 +157,15 @@ def call(body) {
           gitCommit = commit
         }
         
-        echo "To checkout $gitCommit"        
         def scmUrl = scm.getUserRemoteConfigs()[0].getUrl()
+        def scmCredentials = scm.getUserRemoteConfigs()[0].getCredentialsID()        
+        
+        echo "To checkout $gitCommit"        
         echo "Url to clone from is $scmUrl"
         
-        checkout([$class: 'GitSCM', branches: [[name: gitCommit]], userRemoteConfigs: [[url: scmUrl]]])
+        checkout (
+          [$class: 'GitSCM', branches: [[name: gitCommit]], userRemoteConfigs: [[url: scmUrl], [credentialsId: scmCredentials]]]
+        )
       }
 
       def imageTag = null
