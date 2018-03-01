@@ -38,7 +38,6 @@ def call(body) {
   properties([
       parameters([
           string(name: 'commit', defaultValue: '', description: 'The commit to checkout'),
-          string(name: 'branch', defaultValue: 'master', description: 'The branch to checkout'),
           string(name: 'namespace', defaultValue: '', description: 'The target namespace'),
           booleanParam(name: 'build', defaultValue: true, description: 'Build your project?'),
           booleanParam(name: 'deploy', defaultValue: false, description: 'Deploy your project?')
@@ -68,6 +67,7 @@ def call(body) {
   def commit = (config.commit ?: env.COMMIT ?: "").trim()
   echo "Input, commit to checkout is ${commit}"
 
+  // We have this from the pipeline
   def branch = env.BRANCH_NAME ?: "").trim()
   echo "Input, branch to checkout is ${branch}"
 
