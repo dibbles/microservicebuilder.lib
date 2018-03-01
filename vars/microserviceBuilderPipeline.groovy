@@ -338,7 +338,17 @@ def deployProject (String chartFolder, String registry, String image, String ima
         deployCommand += " --values chart/overrides.yaml"
       }
       if (namespace) deployCommand += " --namespace ${namespace}"
+      
+      if (debug) {
+        echo "In the deploy step, image/branch/commit as follows: ${image}-${branch}-${commit}"       
+      }
+      
       def releaseName = (env.BRANCH_NAME == "master") ? "${image}" : "${image}-${branch}-${commit}"
+      
+      if (debug) {        
+        echo "Release name will be ${releaseName}"
+      }
+      
       deployCommand += " ${releaseName} ${chartFolder}"
       
       if (debug) {
