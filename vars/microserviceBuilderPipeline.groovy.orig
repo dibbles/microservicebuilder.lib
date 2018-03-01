@@ -9,10 +9,18 @@
   }
   The following parameters may also be specified. Their defaults are shown below.
   These are the names of images to be downloaded from https://hub.docker.com/.
+<<<<<<< HEAD
+=======
+
+>>>>>>> 17f9d610ef18179d153fe23915a21db6f3c4fdb6
     mavenImage = 'maven:3.5.2-jdk-8'
     dockerImage = 'docker'
     kubectlImage = 'ibmcom/k8s-kubectl:v1.8.3'
     helmImage = 'ibmcom/k8s-helm:v2.6.0'
+<<<<<<< HEAD
+=======
+
+>>>>>>> 17f9d610ef18179d153fe23915a21db6f3c4fdb6
   You can also specify:
     mvnCommands = 'clean package'
     build = 'true' - any value other than 'true' == false
@@ -90,8 +98,15 @@ def call(body) {
   def mvnCommands = (config.mvnCommands == null) ? 'clean package' : config.mvnCommands
   def registry = (env.REGISTRY ?: "").trim()
   if (registry && !registry.endsWith('/')) registry = "${registry}/"
+<<<<<<< HEAD
+  def registrySecret = (env.REGISTRY_SECRET ?: "").trim()
+=======
   def registrySecret = System.getenv("REGISTRY_SECRET").trim()
-  
+  def build = (config.build ?: System.getenv ("BUILD")).toBoolean()
+  def deploy = (config.deploy ?: System.getenv ("DEPLOY")).toBoolean()
+  def namespace = config.namespace ?: (System.getenv("NAMESPACE") ?: "").trim()
+>>>>>>> 17f9d610ef18179d153fe23915a21db6f3c4fdb6
+
   // these options were all added later. Helm chart may not have the associated properties set.
   def test = (config.test ?: (env.TEST ?: "false").trim()).toLowerCase() == 'true'
   def debug = (config.debug ?: (env.DEBUG ?: "false").trim()).toLowerCase() == 'true'
