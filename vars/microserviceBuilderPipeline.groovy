@@ -19,7 +19,6 @@
     deploy = 'true' - any value other than 'true' == false
     test = 'true' - `mvn verify` is run if this value is `true` and a pom.xml exists
     debug = 'false' - namespaces created during tests are deleted unless this value is set to 'true'
-    deployBranch = 'master' - only builds from this branch are deployed
     chartFolder = 'chart' - folder containing helm deployment chart
     manifestFolder = 'manifests' - folder containing kubectl deployment manifests
     namespace = 'targetNamespace' - deploys into Kubernetes targetNamespace.
@@ -130,6 +129,12 @@ def call(body) {
     volumes += configMapVolume(configMapName: mavenSettingsConfigMap, mountPath: '/msb_mvn_cfg')
   }
   print "microserviceBuilderPipeline: volumes = ${volumes}"
+  
+  if (debug) {
+    node {
+      echo sh(return stdOut: true, script: 'env')
+    }
+  }
 
   podTemplate(
     label: 'msbPod',
