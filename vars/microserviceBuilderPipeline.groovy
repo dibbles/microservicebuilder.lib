@@ -171,14 +171,18 @@ def call(body) {
         echo "The commit to use is ${gitCommit}"
         sh(script: 'git checkout ${gitCommit}', returnStdout: true)
         */
-        
+                                
         def scmUrl = scm.getUserRemoteConfigs()[0].getUrl()
         def creds = scm.getUserRemoteConfigs()[0].getCredentialsId()
+        sh(script: 'git clone ${scmUrl}')
+        sh(script: 'git checkout -f ${gitCommit}')
         
+        /*
         checkout(
           [$class: 'GitSCM', branches: [[name: gitCommit ]],
           userRemoteConfigs: [[url: scmUrl], [credentialsId: creds]]]
         )
+        */
         
       }
       
