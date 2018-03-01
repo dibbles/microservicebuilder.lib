@@ -132,7 +132,7 @@ def call(body) {
   
   if (debug) {
     node {
-      echo sh(return stdOut: true, script: 'env')
+      sh 'printenv'
     }
   }
 
