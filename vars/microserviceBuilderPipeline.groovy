@@ -162,6 +162,7 @@ def call(body) {
         
         echo "To checkout $gitCommit"        
         echo "Url to clone from is $scmUrl"
+        echo "Credentials ID to use is $scmCredentials"
         
         checkout (
           [$class: 'GitSCM', branches: [[name: gitCommit]], userRemoteConfigs: [[url: scmUrl], [credentialsId: scmCredentials]]]
