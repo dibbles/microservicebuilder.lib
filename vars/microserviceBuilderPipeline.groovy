@@ -158,7 +158,7 @@ def call(body) {
         }
         
         def scmUrl = scm.getUserRemoteConfigs()[0].getUrl()
-        def scmCredentials = scm.getUserRemoteConfigs()[0].getCredentialsID()        
+        def scmCredentials = scm.getUserRemoteConfigs()[0].getCredentialsId()        
         
         echo "To checkout $gitCommit"        
         echo "Url to clone from is $scmUrl"
