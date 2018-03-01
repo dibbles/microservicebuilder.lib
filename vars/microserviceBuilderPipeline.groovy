@@ -164,8 +164,20 @@ def call(body) {
           echo "A commit's provided, using that"
           gitCommit = commit
         }        
+        
         echo "The commit to use is ${gitCommit}"
-        sh "git checkout -f ${gitCommit}"
+        
+        if (debug) {
+          echo "Before checking out code..."
+          sh(script: 'git branch -a', returnStdout: true)
+        }        
+        
+        sh(script: 'git checkout ${gitCommit}', returnStdout: true)
+        
+        if (debug) {                    
+          echo "After checking out code..."
+          sh(script: 'git branch -a', returnStdout: true)
+        }        
       }
       
       def imageTag = null
