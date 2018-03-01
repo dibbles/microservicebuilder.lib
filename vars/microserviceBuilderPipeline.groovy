@@ -68,7 +68,7 @@ def call(body) {
   echo "Input, commit to checkout is ${commit}"
 
   // We have this from the pipeline
-  def branch = env.BRANCH_NAME ?: "").trim()
+  def branch = (env.BRANCH_NAME ?: "").trim()
   echo "Input, branch to checkout is ${branch}"
 
   def namespace = (config.commit ?: env.NAMESPACE ?: "").trim()
