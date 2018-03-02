@@ -155,7 +155,7 @@ def call(body) {
 
       stage ('Extract') {
         
-        checkout scm
+        //checkout scm
         
         // No commit specified? Get the latest, short version. Could be just a branch
         if (!commit) {
@@ -169,7 +169,7 @@ def call(body) {
         
         echo "The commit to use is ${gitCommit}"
         sh "git checkout -f ${gitCommit}"
-        /*
+        
         def scmUrl = scm.getUserRemoteConfigs()[0].getUrl()
         echo "scm url: $scmUrl"
         def creds = scm.getUserRemoteConfigs()[0].getCredentialsId()
@@ -181,9 +181,9 @@ def call(body) {
         echo "Checking out the code"
         checkout(
           [$class: 'GitSCM', branches: [[name: gitCommit ]],
-          userRemoteConfigs: [[url: scmUrl], [credentialsId: creds]]]
+          userRemoteConfigs: [[url: scmUrl, credentialsId: creds]]]
         )
-        */
+        
         
         
       }
