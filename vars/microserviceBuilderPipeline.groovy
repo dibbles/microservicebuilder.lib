@@ -155,7 +155,7 @@ def call(body) {
 
       stage ('Extract') {
         
-        //checkout scm
+        checkout scm
         
         // No commit specified? Get the latest, short version. Could be just a branch
         if (!commit) {
@@ -165,13 +165,11 @@ def call(body) {
           // todo handle full commit hash being set by the caller, only accept short or helm won't like it
           echo "A commit's provided, using that"
           gitCommit = commit
-        }
+        }        
         
-        /*
         echo "The commit to use is ${gitCommit}"
-        sh(script: 'git checkout ${gitCommit}', returnStdout: true)
-        */
-                                
+        sh "git checkout -f ${gitCommit}"
+        /*
         def scmUrl = scm.getUserRemoteConfigs()[0].getUrl()
         echo "scm url: $scmUrl"
         def creds = scm.getUserRemoteConfigs()[0].getCredentialsId()
@@ -185,6 +183,7 @@ def call(body) {
           [$class: 'GitSCM', branches: [[name: gitCommit ]],
           userRemoteConfigs: [[url: scmUrl], [credentialsId: creds]]]
         )
+        */
         
         
       }
