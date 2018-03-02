@@ -179,7 +179,8 @@ def call(body) {
         
         //sh("git clone $scmUrl --branch ${branch} --single-branch")
         //sh("git checkout -f ${gitCommit}")
-                
+        
+        echo "Checking out the code"
         checkout(
           [$class: 'GitSCM', branches: [[name: gitCommit ]],
           userRemoteConfigs: [[url: scmUrl], [credentialsId: creds]]]
