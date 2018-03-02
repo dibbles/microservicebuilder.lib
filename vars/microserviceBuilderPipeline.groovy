@@ -167,8 +167,10 @@ def call(body) {
           gitCommit = commit
         }        
         
+        /*
         echo "The commit to use is ${gitCommit}"
         sh "git checkout -f ${gitCommit}"
+        */
         
         def scmUrl = scm.getUserRemoteConfigs()[0].getUrl()
         echo "scm url: $scmUrl"
