@@ -177,15 +177,14 @@ def call(body) {
         def creds = scm.getUserRemoteConfigs()[0].getCredentialsId()
         echo "creds: $creds"
         
-        sh("git clone $scmUrl --branch ${branch} --single-branch")
-        sh("git checkout -f ${gitCommit}")
-        
-        /*
+        //sh("git clone $scmUrl --branch ${branch} --single-branch")
+        //sh("git checkout -f ${gitCommit}")
+                
         checkout(
           [$class: 'GitSCM', branches: [[name: gitCommit ]],
           userRemoteConfigs: [[url: scmUrl], [credentialsId: creds]]]
         )
-        */
+        
         
       }
       
