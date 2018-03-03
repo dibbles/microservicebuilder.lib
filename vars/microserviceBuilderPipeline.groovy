@@ -315,6 +315,25 @@ def call(body) {
           }
         }
       }
+      
+      // Figure out if it's a deployment branch, if so we're in here and we can deploy
+      container ('kubectl') {
+        // folder name is the namespace the project is in
+        // job name is the project name
+        // found deploy branch is a value in the CRD for a project
+        jobName = env.JOB_NAME        
+        echo "env.JOB_NAME is $jobName"
+        /*
+        folderName = env.
+        
+        foundDeployBranch = sh "kubectl get project $jobName --namespace=$folderName -o json | jq '.spec.deployBranch'
+        echo "Found deploy branch for this project is $foundDeployBranch"
+        if branch == foundDeployBranch {
+          deploy = true 
+        }*/
+ 
+      }
+      
 
       if (deploy) {
         echo "Deploying..."
