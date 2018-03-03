@@ -150,14 +150,19 @@ def call(body) {
       stage ('Extract') {
         
         //checkout scm
+        def commitProvided = false
         
         // No commit specified? Get the latest, short version. Could be just a branch
         if (!commit) {
           echo "No commit specified, getting the latest and ensuring short version used"
-          gitCommit = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+          // van't do this as we've not checked out the code yet
+          // gitCommit = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()       
+          // we checkout the branch, therefore get the latest commit
+          gitCommit = branch
         } else {
           // todo handle full commit hash being set by the caller, only accept short or helm won't like it
           echo "A commit's provided, using that, it is ${commit}"
+          commitProvided = true
           gitCommit = commit
         }        
         
@@ -180,7 +185,11 @@ def call(body) {
           userRemoteConfigs: [[url: scmUrl, credentialsId: creds]]]
         )
         
-        
+        // Ensure the git commit is the shorthand version for later
+        if (!commitProvided) {
+           echo "Didn't provide a specific commit, so getting the shortened version of the last commit on $branch"
+           gitCommit = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+        }
         
       }
       
@@ -316,15 +325,17 @@ def call(body) {
         // job name is the project name
         // found deploy branch is a value in the CRD for a project
         jobName = env.JOB_NAME        
-        echo "env.JOB_NAME is $jobName"
-        /*
-        folderName = env.
+        echo "env.JOB_NAME is ${jobName}"
         
-        foundDeployBranch = sh "kubectl get project $jobName --namespace=$folderName -o json | jq '.spec.deployBranch'
+        folderName = env.WORKSPACE
+        echo "env.WORKSPACE (probably the folder) is ${folderName}"
+        
+        foundDeployBranch = sh "kubectl get project ${jobName} --namespace=${folderName} -o json | jq '.spec.deployBranch'
         echo "Found deploy branch for this project is $foundDeployBranch"
         if branch == foundDeployBranch {
-          deploy = true 
-        }*/
+          echo "It's the deploy branch, deploy = true"
+          deploy = true
+        }
  
       }
       
