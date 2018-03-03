@@ -335,9 +335,10 @@ def call(body) {
         projectJson = sh "kubectl get project ${jobName} --namespace=${folderName} -o json"
         // no jq but we want to do jq '.spec.deployBranch on the above
         
-        // todo get it out with python if we have it
-        pythonVersion = sh "python --version"
-        echo "Checking for Python, version: ${pythonVersion}"
+        
+        import groovy.json.JsonSlurper
+        def slurper = new JsonSlurper().parseText(projectJson)
+        def foundDeployBranch = slurper.spec.deployBranch        
                 
         echo "Found deploy branch for this project is $foundDeployBranch"
         if (branch == foundDeployBranch) {
