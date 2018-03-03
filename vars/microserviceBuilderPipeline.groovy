@@ -31,7 +31,6 @@ import java.io.File
 import java.util.UUID
 import groovy.json.JsonOutput;
 import groovy.json.JsonSlurperClassic;
-import groovy.json.JsonSlurper;
 
 def call(body) {
   
@@ -336,8 +335,11 @@ def call(body) {
         projectJson = sh returnStdout: true, script: 'kubectl get project ${jobName} --namespace=${folderName} -o json'
         // no jq but we want to do jq '.spec.deployBranch on the above
                 
-        def slurper = new JsonSlurper().parseText(projectJson)
-        def foundDeployBranch = slurper.spec.deployBranch        
+        def slurper = new JsonSlurperClassic().parseText(projectJson)
+        //echo "color: ${data.attachments[0].color}"
+        echo "slurper is: ${slurper}"
+        echo "spec is ${slurper.spec}"
+        def foundDeployBranch = slurper.spec.deployBranch
                 
         echo "Found deploy branch for this project is $foundDeployBranch"
         if (branch == foundDeployBranch) {
