@@ -128,13 +128,7 @@ def call(body) {
   if (mavenSettingsConfigMap) {
     volumes += configMapVolume(configMapName: mavenSettingsConfigMap, mountPath: '/msb_mvn_cfg')
   }
-  print "microserviceBuilderPipeline: volumes = ${volumes}"
   
-  if (debug) {
-    node {
-      sh 'printenv'
-    }
-  }
 
   podTemplate(
     label: 'msbPod',
@@ -163,7 +157,7 @@ def call(body) {
           gitCommit = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
         } else {
           // todo handle full commit hash being set by the caller, only accept short or helm won't like it
-          echo "A commit's provided, using that"
+          echo "A commit's provided, using that, it is ${commit}"
           gitCommit = commit
         }        
         
