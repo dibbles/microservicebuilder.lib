@@ -324,30 +324,27 @@ def call(body) {
         // folder name is the namespace the project is in
         // job name is the project name
         // found deploy branch is a value in the CRD for a project we need to lookup        
-        def array = jobName.split("/")
-        def folderName = array[0];
-        def jobName = array[1];        
+        def array = pwd.split("/")
+        def folderName = array[0]
+        def jobName = array[1]
         // we have branch already at array [2]        
         echo "namespace (jenkins folder for this job) is ${folderName}"        
         echo "job name is ${jobName}"
         
         // We don't have jq here unfortunately
         projectJson = sh "kubectl get project ${jobName} --namespace=${folderName} -o json"
-        // no jq but we want to do jq '.spec.deployBranch
+        // no jq but we want to do jq '.spec.deployBranch on the above
         
         // todo get it out with python if we have it
         pythonVersion = sh "python --version"
-        echo "Checking for Python, version: ${pythonVersion}"        
-        
-        
+        echo "Checking for Python, version: ${pythonVersion}"
+                
         echo "Found deploy branch for this project is $foundDeployBranch"
         if (branch == foundDeployBranch) {
           echo "It's the deploy branch, deploy = true"
           deploy = true
-        }
- 
-      }
-      
+        } 
+      }      
 
       if (deploy) {
         echo "Deploying..."
