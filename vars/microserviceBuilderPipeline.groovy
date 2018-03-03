@@ -324,7 +324,7 @@ def call(body) {
         // folder name is the namespace the project is in
         // job name is the project name
         // found deploy branch is a value in the CRD for a project we need to lookup        
-        def array = pwd.split("/")
+        def array = env.JOB_NAME.split("/")
         def folderName = array[0]
         def jobName = array[1]
         // we have branch already at array [2]        
