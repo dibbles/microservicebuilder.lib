@@ -332,7 +332,7 @@ def call(body) {
         echo "job name is ${jobName}"
         
         // We don't have jq here unfortunately
-        projectJson = sh returnStdout: true, script: 'kubectl get project ${jobName} --namespace=${folderName} -o json'
+        projectJson = sh returnStdout: true, script: "kubectl get project ${jobName} --namespace=${folderName} -o json"
         // no jq but we want to do jq '.spec.deployBranch on the above
                 
         def slurper = new JsonSlurperClassic().parseText(projectJson)
