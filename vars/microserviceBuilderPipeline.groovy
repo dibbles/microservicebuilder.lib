@@ -324,13 +324,14 @@ def call(body) {
         // folder name is the namespace the project is in
         // job name is the project name
         // found deploy branch is a value in the CRD for a project
-        jobName = env.JOB_NAME        
-        echo "env.JOB_NAME is ${jobName}"
+        jobName = env.JOB_BASE_NAME        
+        echo "job name is $jobName"        
         
-        folderName = env.WORKSPACE
-        echo "env.WORKSPACE (probably the folder) is ${folderName}"
+        def array = pwd().split("/")
+        def folderName = array[array.length - 2];        
+        echo "namespace (jenkins folder for this job) is ${folderName}"
         
-        foundDeployBranch = sh "kubectl get project ${jobName} --namespace=${folderName} -o json | jq '.spec.deployBranch'
+        foundDeployBranch = sh "kubectl get project ${jobName} --namespace=${folderName} -o json | jq '.spec.deployBranch'"
         echo "Found deploy branch for this project is $foundDeployBranch"
         if branch == foundDeployBranch {
           echo "It's the deploy branch, deploy = true"
