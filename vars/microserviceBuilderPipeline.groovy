@@ -333,7 +333,7 @@ def call(body) {
         
         foundDeployBranch = sh "kubectl get project ${jobName} --namespace=${folderName} -o json | jq '.spec.deployBranch'"
         echo "Found deploy branch for this project is $foundDeployBranch"
-        if branch == foundDeployBranch {
+        if (branch == foundDeployBranch) {
           echo "It's the deploy branch, deploy = true"
           deploy = true
         }
