@@ -145,6 +145,13 @@ def call(body) {
     volumes: volumes
   ) {
     node('msbPod') {
+      
+      container ('helm') {
+        echo "Doing the helm --version first!"
+        helmVersion = sh (script: 'helm --version', returnStdout: true)        
+        helmFile = sh (script: 'file helm', returnStdout: true)        
+      }
+      
       def gitCommit
 
       stage ('Extract') {
