@@ -12,7 +12,7 @@
     mavenImage = 'maven:3.5.2-jdk-8'
     dockerImage = 'docker'
     kubectlImage = 'ibmcom/k8s-kubectl:v1.8.3'
-    helmImage = 'ibmcom/k8s-helm:v2.6.0'
+    helmImage = 'adamroberts/helm:latest'
   You can also specify:
     mvnCommands = 'clean package'
     build = 'true' - any value other than 'true' == false
