@@ -147,8 +147,8 @@ def call(body) {
     node('msbPod') {
       
       container ('helm') {
-        echo "Doing the /helm --version first!"
-        helmVersion = sh (script: '/helm --version', returnStdout: true)        
+        echo "Doing the /helm version first!"
+        helmVersion = sh (script: '/helm version', returnStdout: true)        
         helmFile = sh (script: 'file /helm', returnStdout: true)        
       }
       
