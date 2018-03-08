@@ -166,10 +166,10 @@ def call(body) {
         
         echo "debug 5"
         output = sh (script: 'pwd', returnStdout: true)
-        echo "Output is $output"     
+        echo "Output is $output"       
         
-        echo "debug 6, doing the /helm version"
-        helmVersion = sh (script: '/helm version', returnStdout: true)
+        echo "debug 6, doing the helm version"
+        helmVersion = sh (script: 'helm version', returnStdout: true)
       }
       
       def gitCommit
@@ -310,9 +310,9 @@ def call(body) {
             echo "pipeline.yaml contains..."            
             sh(script: 'cat pipeline.yaml', returnStdout: true)
             
-            sh "/helm init --client-only --skip-refresh"            
+            sh "helm init --client-only --skip-refresh"            
             
-            def deployCommand = "/helm install ${realChartFolder} --wait --set test=true --values pipeline.yaml --namespace ${testNamespace} --name ${tempHelmRelease}"
+            def deployCommand = "helm install ${realChartFolder} --wait --set test=true --values pipeline.yaml --namespace ${testNamespace} --name ${tempHelmRelease}"
             if (fileExists("chart/overrides.yaml")) {
               deployCommand += " --values chart/overrides.yaml"
             }            
@@ -336,7 +336,7 @@ def call(body) {
                   sh "kubectl delete namespace ${testNamespace}"
                   if (fileExists(realChartFolder)) {
                     container ('helm') {
-                      sh "/helm delete ${tempHelmRelease} --purge"
+                      sh "helm delete ${tempHelmRelease} --purge"
                     }
                   }
                 }
@@ -405,8 +405,8 @@ def deployProject (String chartFolder, String registry, String image, String ima
   
   if (chartFolder != null && fileExists(chartFolder)) {
     container ('helm') {
-      sh "/helm init --client-only --skip-refresh"
-      def deployCommand = "/helm upgrade --install --wait --values pipeline.yaml"
+      sh "helm init --client-only --skip-refresh"
+      def deployCommand = "helm upgrade --install --wait --values pipeline.yaml"
       if (fileExists("chart/overrides.yaml")) {
         deployCommand += " --values chart/overrides.yaml"
       }
