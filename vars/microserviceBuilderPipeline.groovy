@@ -164,7 +164,7 @@ def call(body) {
         echo "Output is $output"
         
         echo "debug 3"
-        output = sh (script: 'echo $PATH', returnStdout: true)
+        output = sh (script: 'echo ${PATH}', returnStdout: true)
         echo "Output is $output"
         
         echo "debug 4"
@@ -176,8 +176,10 @@ def call(body) {
         echo "Output is $output"        
         
         echo "debug 6, checking you got them certs at $HELM_HOME"
-        output = sh (script: 'ls $HELM_HOME', returnStdout: true)
+        output = sh (script: 'ls ${HELM_HOME}', returnStdout: true)
         echo "Output is $output"
+        
+        sh "helm init --client-only --skip-refresh"            
         
         echo "debug 7, doing the helm version"
         helmVersion = sh (script: 'helm version', returnStdout: true)
@@ -320,9 +322,7 @@ def call(body) {
           
           container ('helm') {            
             echo "pipeline.yaml contains..."            
-            sh(script: 'cat pipeline.yaml', returnStdout: true)
-            
-            sh "helm init --client-only --skip-refresh"            
+            sh(script: 'cat pipeline.yaml', returnStdout: true)            
             
             def deployCommand = "helm install ${realChartFolder} --wait --set test=true --values pipeline.yaml --namespace ${testNamespace} --name ${tempHelmRelease}"
             if (fileExists("chart/overrides.yaml")) {
