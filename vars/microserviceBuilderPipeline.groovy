@@ -175,7 +175,7 @@ def call(body) {
         output = sh (script: 'pwd', returnStdout: true)
         echo "Output is $output"        
         
-        echo "debug 6, checking you got them certs at $HELM_HOME"
+        echo "debug 6, checking you got them certs"
         output = sh (script: 'ls ${HELM_HOME}', returnStdout: true)
         echo "Output is $output"
         
