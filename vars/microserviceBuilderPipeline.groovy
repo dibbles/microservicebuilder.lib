@@ -148,8 +148,12 @@ def call(body) {
       
       container ('helm') {
         
+        echo "debug 0"
+        def output = sh (script: "echo $HELM_HOME', returnStdout: true)
+        echo "Output (HELM_HOME) is $output"
+                
         echo "debug 1"
-        def output = sh (script: 'ls /', returnStdout: true)
+        output = sh (script: 'ls /', returnStdout: true)
         echo "Output is $output"
         
         echo "debug 2"
