@@ -149,16 +149,21 @@ def call(body) {
       container ('helm') {
         
         echo "debug 1"
-        helmVersion = sh (script: 'ls /', returnStdout: true)
+        def output = = sh (script: 'ls /', returnStdout: true)
+        echo "Output is $output"
         
         echo "debug 2"
-        helmVersion = sh (script: 'ls /helminstall', returnStdout: true)        
+        output = sh (script: 'ls /helminstall', returnStdout: true)        
+        echo "Output is $output"        
         
         echo "debug 3"
-        helmVersion = sh (script: 'echo $HELM_HOME', returnStdout: true)     
+        output = sh (script: 'echo $HELM_HOME', returnStdout: true)     
+        echo "Output is $output"        
         
         echo "debug 4"
-        helmVersion = sh (script: 'echo $PATH', returnStdout: true)        
+        output = sh (script: 'echo $PATH', returnStdout: true)
+        echo "Output is $output"
+        
         
         echo "Doing the /helm version"
         helmVersion = sh (script: '/helm version', returnStdout: true)
