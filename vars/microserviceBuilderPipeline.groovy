@@ -147,9 +147,21 @@ def call(body) {
     node('msbPod') {
       
       container ('helm') {
-        echo "Doing the /helm version first!"
-        helmVersion = sh (script: '/helm version', returnStdout: true)        
-        helmFile = sh (script: 'file /helm', returnStdout: true)        
+        
+        echo "debug 1"
+        helmVersion = sh (script: 'ls /', returnStdout: true)
+        
+        echo "debug 2"
+        helmVersion = sh (script: 'ls /helminstall', returnStdout: true)        
+        
+        echo "debug 3"
+        helmVersion = sh (script: 'echo $HELM_HOME', returnStdout: true)     
+        
+        echo "debug 4"
+        helmVersion = sh (script: 'echo $PATH', returnStdout: true)        
+        
+        echo "Doing the /helm version"
+        helmVersion = sh (script: '/helm version', returnStdout: true)
       }
       
       def gitCommit
