@@ -146,6 +146,12 @@ def call(body) {
   ) {
     node('msbPod') {
       
+      container ('docker') {
+        sh "docker images"
+        // Pleeeeeeease use the latest, actually pull it in ffs
+        sh "docker rmi -f adamroberts/helm"        
+      }
+      
       container ('helm') {
         
         echo "debug 1"
