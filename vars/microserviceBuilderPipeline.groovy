@@ -160,7 +160,15 @@ def call(body) {
         output = sh (script: 'echo $PATH', returnStdout: true)
         echo "Output is $output"        
         
-        echo "Doing the /helm version"
+        echo "debug 4"
+        output = sh (script: 'ls', returnStdout: true)
+        echo "Output is $output"       
+        
+        echo "debug 5"
+        output = sh (script: 'pwd', returnStdout: true)
+        echo "Output is $output"     
+        
+        echo "debug 6, doing the /helm version"
         helmVersion = sh (script: '/helm version', returnStdout: true)
       }
       
