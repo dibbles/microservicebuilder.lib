@@ -173,14 +173,15 @@ def call(body) {
         
         echo "debug 5"
         output = sh (script: 'pwd', returnStdout: true)
+        echo "Output is $output"        
+        
+        echo "debug 6, checking you got them certs at $HELM_HOME"
+        output = sh (script: 'ls $HELM_HOME', returnStdout: true)
         echo "Output is $output"
         
-        echo "debug 6, doing the helm version"
+        echo "debug 7, doing the helm version"
         helmVersion = sh (script: 'helm version', returnStdout: true)
-        
-        echo "debug 7, checking you got them certs at $HELM_HOME"
-        output = sh (script: 'ls $HELM_HOME', returnStdout: true)
-        echo "Output is $output" 
+         
       }
       
       def gitCommit
