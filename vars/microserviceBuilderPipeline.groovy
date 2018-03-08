@@ -88,7 +88,7 @@ def call(body) {
   def maven = (config.mavenImage == null) ? 'maven:3.5.2-jdk-8' : config.mavenImage
   def docker = (config.dockerImage == null) ? 'ibmcom/docker:17.10' : config.dockerImage
   def kubectl = (config.kubectlImage == null) ? 'ibmcom/k8s-kubectl:v1.8.3' : config.kubectlImage
-  def helm = (config.helmImage == null) ? 'adamroberts/helm:notexist' : config.helmImage
+  def helm = (config.helmImage == null) ? 'adamroberts/helm:latest' : config.helmImage
   def mvnCommands = (config.mvnCommands == null) ? 'clean package' : config.mvnCommands
 
   def registry = (env.REGISTRY ?: "").trim()
