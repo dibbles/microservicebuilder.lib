@@ -179,9 +179,13 @@ def call(body) {
         output = sh (script: 'ls ${HELM_HOME}', returnStdout: true)
         echo "Output is $output"
         
+        echo "debug 7, heading the authstr"
+        output = sh (script: 'head ${HELM_HOME}/authstr', returnStdout: true)
+        echo "authstr head is $output"
+        
         sh "helm init --client-only --skip-refresh"            
         
-        echo "debug 7, doing the helm version"
+        echo "debug 8, doing the helm version"
         helmVersion = sh (script: 'helm version', returnStdout: true)
          
       }
