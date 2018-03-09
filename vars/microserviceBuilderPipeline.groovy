@@ -129,8 +129,6 @@ def call(body) {
     volumes += configMapVolume(configMapName: mavenSettingsConfigMap, mountPath: '/msb_mvn_cfg')
   }
   
-  def helmGlobals = 
-
   podTemplate(
     label: 'msbPod',
     inheritFrom: 'default',
@@ -145,19 +143,12 @@ def call(body) {
     ],
     volumes: volumes
   ) {
-    node('msbPod') {
-      
-      container ('docker') {
-        sh "docker images"
-        // Pleeeeeeease use the latest, actually pull it in ffs
-        sh "docker rmi -f adamroberts/helm:latest"   
-        sh "docker pull adamroberts/helm:latest"
-      }
+    node('msbPod') {      
       
       container ('helm') {        
-        sh "helm init"        
+        sh "/helm init"        
         echo "debug 1, doing the helm version --debug"
-        helmVersion = sh (script: 'helm version --debug', returnStdout: true)         
+        helmVersion = sh (script: '/helm version --debug', returnStdout: true)         
       }
       
       def gitCommit
@@ -298,7 +289,7 @@ def call(body) {
             echo "pipeline.yaml contains..."            
             sh(script: 'cat pipeline.yaml', returnStdout: true)            
             
-            def deployCommand = "helm install ${realChartFolder} --wait --set test=true --values pipeline.yaml --namespace ${testNamespace} --name ${tempHelmRelease}"
+            def deployCommand = "/helm install ${realChartFolder} --wait --set test=true --values pipeline.yaml --namespace ${testNamespace} --name ${tempHelmRelease}"
             if (fileExists("chart/overrides.yaml")) {
               deployCommand += " --values chart/overrides.yaml"
             }            
@@ -322,7 +313,7 @@ def call(body) {
                   sh "kubectl delete namespace ${testNamespace}"
                   if (fileExists(realChartFolder)) {
                     container ('helm') {
-                      sh "helm delete ${tempHelmRelease} --purge"
+                      sh "/helm delete ${tempHelmRelease} --purge"
                     }
                   }
                 }
@@ -391,7 +382,7 @@ def deployProject (String chartFolder, String registry, String image, String ima
   
   if (chartFolder != null && fileExists(chartFolder)) {
     container ('helm') {
-      sh "helm init --client-only --skip-refresh"
+      sh "/helm init --client-only --skip-refresh"
       def deployCommand = "helm upgrade --install --wait --values pipeline.yaml"
       if (fileExists("chart/overrides.yaml")) {
         deployCommand += " --values chart/overrides.yaml"
