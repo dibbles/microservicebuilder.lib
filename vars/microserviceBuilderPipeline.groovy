@@ -129,6 +129,7 @@ def call(body) {
     volumes += configMapVolume(configMapName: mavenSettingsConfigMap, mountPath: '/msb_mvn_cfg')
   }
   
+  def helmGlobals = 
 
   podTemplate(
     label: 'msbPod',
@@ -184,8 +185,8 @@ def call(body) {
         echo "authstr head is $output"        
         
         // Fine, use our own tiller
-        sh "helm init"  
-        //sh "helm init --client-only --skip-refresh"  
+        //sh "helm init --tiller-namespace default"
+        sh "helm init --client-only --skip-refresh"  
         
         echo "debug 8, doing the helm version"
         helmVersion = sh (script: 'helm version', returnStdout: true)
