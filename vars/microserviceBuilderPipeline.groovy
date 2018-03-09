@@ -188,8 +188,8 @@ def call(body) {
         //sh "helm init --tiller-namespace default"
         sh "helm init --client-only --skip-refresh"  
         
-        echo "debug 8, doing the helm version"
-        helmVersion = sh (script: 'helm version', returnStdout: true)
+        echo "debug 8, doing the helm version --debug"
+        helmVersion = sh (script: 'helm version --debug', returnStdout: true)
          
       }
       
