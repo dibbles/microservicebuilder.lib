@@ -146,7 +146,7 @@ def call(body) {
     node('msbPod') {      
       
       container ('helm') {        
-        sh "/helm init -c --skip-refresh"        
+        sh "/helm init --skip-refresh"        
         echo "debug 1, doing the helm version --debug"
         helmVersion = sh (script: '/helm version --debug', returnStdout: true)         
       }
