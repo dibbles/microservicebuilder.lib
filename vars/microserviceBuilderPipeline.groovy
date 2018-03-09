@@ -88,7 +88,7 @@ def call(body) {
   def maven = (config.mavenImage == null) ? 'maven:3.5.2-jdk-8' : config.mavenImage
   def docker = (config.dockerImage == null) ? 'ibmcom/docker:17.10' : config.dockerImage
   def kubectl = (config.kubectlImage == null) ? 'ibmcom/k8s-kubectl:v1.8.3' : config.kubectlImage
-  def helm = 'adamroberts/helm:latest'
+  def helm = (config.helmImage == null) ? 'ibmcom/k8s-helm:v2.6.0' : config.helmImage
   def mvnCommands = (config.mvnCommands == null) ? 'clean package' : config.mvnCommands
 
   def registry = (env.REGISTRY ?: "").trim()
@@ -154,43 +154,10 @@ def call(body) {
         sh "docker pull adamroberts/helm:latest"
       }
       
-      container ('helm') {
-        
-        echo "debug 1"
-        def output = sh (script: 'echo $HELM_HOME', returnStdout: true)
-        echo "Output (HELM_HOME) is $output"
-                
-        echo "debug 2"
-        output = sh (script: 'ls /usr/bin', returnStdout: true)
-        echo "Output is $output"
-        
-        echo "debug 3"
-        output = sh (script: 'echo ${PATH}', returnStdout: true)
-        echo "Output is $output"
-        
-        echo "debug 4"
-        output = sh (script: 'ls', returnStdout: true)
-        echo "Output is $output"
-        
-        echo "debug 5"
-        output = sh (script: 'pwd', returnStdout: true)
-        echo "Output is $output"        
-        
-        echo "debug 6, checking you got them certs"
-        output = sh (script: 'ls ${HELM_HOME}', returnStdout: true)
-        echo "Output is $output"
-        
-        echo "debug 7, heading the authstr"
-        output = sh (script: 'head ${HELM_HOME}/authstr', returnStdout: true)
-        echo "authstr head is $output"        
-        
-        // Fine, use our own tiller
-        //sh "helm init --tiller-namespace default"
-        sh "helm init --client-only --skip-refresh"  
-        
-        echo "debug 8, doing the helm version --debug"
-        helmVersion = sh (script: 'helm version --debug', returnStdout: true)
-         
+      container ('helm') {        
+        sh "helm init"        
+        echo "debug 1, doing the helm version --debug"
+        helmVersion = sh (script: 'helm version --debug', returnStdout: true)         
       }
       
       def gitCommit
