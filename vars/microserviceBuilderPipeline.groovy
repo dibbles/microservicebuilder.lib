@@ -146,9 +146,9 @@ def call(body) {
     node('msbPod') {      
       
       container ('helm') {        
-        sh "/helm init --skip-refresh"        
+        sh "/helm init --skip-refresh --tiller-namespace default"        
         echo "debug 1, doing the helm version --debug"
-        helmVersion = sh (script: '/helm version --debug', returnStdout: true)         
+        helmVersion = sh (script: '/helm version --debug --tiller-namespace default', returnStdout: true)         
       }
       
       def gitCommit
@@ -289,7 +289,7 @@ def call(body) {
             echo "pipeline.yaml contains..."            
             sh(script: 'cat pipeline.yaml', returnStdout: true)            
             
-            def deployCommand = "/helm install ${realChartFolder} --wait --set test=true --values pipeline.yaml --namespace ${testNamespace} --name ${tempHelmRelease}"
+            def deployCommand = "/helm install ${realChartFolder} --wait --set test=true --values pipeline.yaml --namespace ${testNamespace} --name ${tempHelmRelease} --tiller-namespace default"
             if (fileExists("chart/overrides.yaml")) {
               deployCommand += " --values chart/overrides.yaml"
             }            
@@ -313,7 +313,7 @@ def call(body) {
                   sh "kubectl delete namespace ${testNamespace}"
                   if (fileExists(realChartFolder)) {
                     container ('helm') {
-                      sh "/helm delete ${tempHelmRelease} --purge"
+                      sh "/helm delete ${tempHelmRelease} --purge --tiller-namespace default"
                     }
                   }
                 }
@@ -382,8 +382,8 @@ def deployProject (String chartFolder, String registry, String image, String ima
   
   if (chartFolder != null && fileExists(chartFolder)) {
     container ('helm') {
-      sh "/helm init --client-only --skip-refresh"
-      def deployCommand = "helm upgrade --install --wait --values pipeline.yaml"
+      //sh "/helm init --client-only --skip-refresh"
+      def deployCommand = "helm upgrade --install --wait --values pipeline.yaml --tiller-namespace default"
       if (fileExists("chart/overrides.yaml")) {
         deployCommand += " --values chart/overrides.yaml"
       }
