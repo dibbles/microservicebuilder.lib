@@ -383,7 +383,7 @@ def deployProject (String chartFolder, String registry, String image, String ima
   if (chartFolder != null && fileExists(chartFolder)) {
     container ('helm') {
       //sh "/helm init --client-only --skip-refresh"
-      def deployCommand = "helm upgrade --install --wait --values pipeline.yaml --tiller-namespace default"
+      def deployCommand = "/helm upgrade --install --wait --values pipeline.yaml --tiller-namespace default"
       if (fileExists("chart/overrides.yaml")) {
         deployCommand += " --values chart/overrides.yaml"
       }
