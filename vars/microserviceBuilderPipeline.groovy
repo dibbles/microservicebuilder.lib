@@ -241,6 +241,7 @@ def call(body) {
               }
               sh buildCommand
               if (registry) {
+                echo "Registry set, it's ${registry}"
                 docker_tag_command = "docker tag ${image}:${imageTag} ${registry}${image}:${imageTag}"
                 docker_push_command = "docker push ${registry}${image}:${imageTag}"
                 
@@ -284,13 +285,15 @@ def call(body) {
           }
           
           container ('helm') {            
-            echo "pipeline.yaml contains..."            
-            sh(script: 'cat pipeline.yaml', returnStdout: true)            
+            pipelineCmd = sh(script: 'cat pipeline.yaml', returnStdout: true)            
+            echo "Pipeline yaml is ${pipelineCmd}"
             
             def deployCommand = "helm install ${realChartFolder} --wait --set test=true --values pipeline.yaml --namespace ${testNamespace} --name ${tempHelmRelease} --tiller-namespace default"
             if (fileExists("chart/overrides.yaml")) {
               deployCommand += " --values chart/overrides.yaml"
             }            
+                        
+            echo "Deploy command is ${deployCommand}"
             
             sh deployCommand
           }
