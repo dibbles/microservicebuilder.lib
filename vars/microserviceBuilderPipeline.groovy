@@ -146,9 +146,7 @@ def call(body) {
     node('msbPod') {      
       
       container ('helm') {        
-        sh "helm init --wait --skip-refresh --tiller-namespace default"
-        echo "debug 1, doing the helm version --debug"
-        helmVersion = sh (script: 'helm version --debug --tiller-namespace default', returnStdout: true)         
+        sh "helm init --skip-refresh --tiller-namespace default"    
       }
       
       def gitCommit
