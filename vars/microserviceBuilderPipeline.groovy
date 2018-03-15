@@ -145,9 +145,10 @@ def call(body) {
   ) {
     node('msbPod') {      
       
-      container ('helm') {        
+      container ('helm') {
+        // Doesn't block and tell us it's ready
         sh "helm init --skip-refresh --tiller-namespace default"    
-      }
+      }      
       
       def gitCommit
 
@@ -282,6 +283,12 @@ def call(body) {
             if (registrySecret) {
               giveRegistryAccessToNamespace (testNamespace, registrySecret)
             }
+          }          
+          
+          echo "Checking we've got a tiller deployment ready before we helm install"
+          container ('kubectl') {
+            // This is going to block until we've got a tiller deploy
+            sh "kubectl rollout status deployment -n kube-system tiller-deploy" 
           }
           
           container ('helm') {            
@@ -313,7 +320,7 @@ def call(body) {
                 container ('kubectl') {
                   sh "kubectl delete namespace ${testNamespace}"
                   if (fileExists(realChartFolder)) {
-                    container ('helm') {
+                    container ('helm') {                      
                       sh "helm delete ${tempHelmRelease} --purge --tiller-namespace default"
                     }
                   }
